@@ -115,7 +115,9 @@ const fetchGameListData = () => {
   }, 800)
 }
 
-const goToSearch = () => console.log('准备跳转到搜索页...')
+const goToSearch = () => {
+  uni.navigateTo({ url: '/pages/search/index' })
+}
 const handleNavClick = (nav: any) => console.log('点击了导航:', nav.name)
 const goToGameDetail = (game: any) => uni.navigateTo({ url: `/pages/detail/index?id=${game.id}` })
 const downloadGame = (game: any) => console.log('开始下载/打开游戏:', game.title)

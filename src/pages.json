@@ -9,14 +9,21 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "App 盒子",
+        "navigationBarTitleText": "首页",
         "navigationBarBackgroundColor": "#ffffff"
       }
     },
     {
       "path": "pages/detail/index",
       "style": {
-        "navigationBarTitleText": "游戏详情",
+        "navigationBarTitleText": "游戏详情页",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
+      "path": "pages/search/index",
+      "style": {
+        "navigationBarTitleText": "搜索页",
         "navigationBarBackgroundColor": "#ffffff"
       }
     }
