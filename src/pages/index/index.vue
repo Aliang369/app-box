@@ -1,7 +1,10 @@
 <template>
   <view class="min-h-screen pb-6 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     
-    <view class="sticky top-0 z-10 bg-white/60 backdrop-blur-md shadow-sm border-b border-white/50" @click="goToSearch">
+    <view class="sticky top-0 z-20 bg-white/60 backdrop-blur-xl shadow-sm border-b border-white/50 pt-2 pb-2 px-2 relative" @click="goToSearch">
+      
+      <view class="absolute inset-0 z-30"></view>
+
       <wd-search 
         placeholder="寻找羁绊与冒险..." 
         placeholder-left

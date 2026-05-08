@@ -5,6 +5,7 @@
       <wd-search 
         v-model="keyword"
         placeholder="输入游戏名或类型..." 
+        placeholder-left
         focus
         bg-color="rgba(255, 255, 255, 0.6)"
         cancel-txt="返回"
