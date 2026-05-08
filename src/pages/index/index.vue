@@ -135,7 +135,7 @@ const handleNavClick = (nav: any) => {
 
 const goToGameDetail = (game: any) => {
   console.log('点击了游戏卡片，跳转到详情页，游戏ID:', game.id)
-  // uni.navigateTo({ url: `/pages/detail/index?id=${game.id}` })
+  uni.navigateTo({ url: `/pages/detail/index?id=${game.id}` })
 }
 
 const downloadGame = (game: any) => {
