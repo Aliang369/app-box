@@ -1,9 +1,9 @@
 <template>
   <view class="min-h-screen bg-[#F9FAFB] pb-24">
-    <view class="w-full h-64 relative bg-gray-200">
-      <image :src="gameDetail.cover" class="w-full h-full object-cover" mode="aspectFill"></image>
-      <view class="absolute inset-0 bg-gradient-to-t from-[#F9FAFB] via-transparent to-black/20"></view>
-      <view class="absolute top-12 left-4 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center" @click="goBack">
+    <view class="w-full relative bg-gray-100" style="height: 521rpx;">
+      <image :src="gameDetail.cover" class="w-full h-full" mode="aspectFill"></image>
+      <view class="absolute inset-0 bg-gradient-to-t from-[#F9FAFB] via-transparent to-black/10"></view>
+      <view class="absolute top-12 left-4 w-8 h-8 bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center" @click="goBack">
         <view class="i-lucide-arrow-left text-white text-lg"></view>
       </view>
     </view>

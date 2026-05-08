@@ -10,7 +10,9 @@
       "path": "pages/index/index",
       "style": {
         "navigationBarTitleText": "少女游戏盒子",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
       }
     },
     {
@@ -30,34 +32,49 @@
       "path": "pages/search/index",
       "style": {
         "navigationBarTitleText": "搜索页",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationBarBackgroundColor": "#ffffff",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
       }
     },
     {
       "path": "pages/latest/index",
       "style": {
         "navigationBarTitleText": "最新上线",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
       }
     },
     {
       "path": "pages/rank/index",
       "style": {
         "navigationBarTitleText": "排行榜单",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
       }
     },
     {
       "path": "pages/gift/index",
       "style": {
         "navigationBarTitleText": "专属福利",
-        "navigationStyle": "custom"
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true,
+        "backgroundTextStyle": "dark"
       }
     },
     {
       "path": "pages/category/index",
       "style": {
         "navigationBarTitleText": "分类大全",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "欢迎登录",
         "navigationStyle": "custom"
       }
     }

@@ -11,17 +11,33 @@
 
     <view class="px-5 mt-4">
       <view class="rounded-2xl overflow-hidden border border-gray-100 bg-white">
-        <wd-swiper :list="bannerList" autoplay indicator indicator-active-color="#4F46E5" :interval="4000"></wd-swiper>
+        <view v-if="isFirstLoading" class="w-full bg-gray-100 animate-pulse" style="height: 465rpx;"></view>
+        <wd-swiper 
+          v-else
+          :list="bannerList" 
+          autoplay 
+          :interval="4000"
+          image-mode="aspectFill"
+          indicator-active-color="#4F46E5"
+          height="465rpx" 
+        ></wd-swiper>
       </view>
     </view>
 
-   <view class="mt-6 px-5">
-      <view class="flex justify-between items-center bg-white rounded-2xl p-2 border border-gray-100 shadow-sm">
+    <view class="mt-4 px-5">
+      <view v-if="isFirstLoading" class="flex justify-between items-center bg-white rounded-2xl p-2 border border-gray-100 shadow-sm">
+        <view v-for="i in 4" :key="i" class="flex flex-col items-center justify-center w-[22%] py-2">
+          <view class="w-7 h-7 rounded-full bg-gray-100 animate-pulse mb-2"></view>
+          <view class="w-8 h-2.5 rounded bg-gray-50 animate-pulse"></view>
+        </view>
+      </view>
+
+      <view v-else class="flex justify-between items-center bg-white rounded-2xl p-2 border border-gray-100 shadow-sm">
         <view 
           v-for="(nav, index) in navList" 
           :key="index" 
-          class="flex flex-col items-center justify-center w-[22%] py-2 rounded-xl active:bg-gray-50 transition-colors"
-          @click="handleNavClick(nav)"
+          class="flex flex-col items-center justify-center w-[22%] py-2 rounded-xl active:bg-gray-50 transition-colors" 
+          @click="handleNavClick(nav)" 
         >
           <view :class="['text-[22px] mb-1.5 text-indigo-500', nav.icon]"></view>
           <text class="text-[12px] font-medium text-gray-600 tracking-tight">{{ nav.name }}</text>
@@ -38,29 +54,41 @@
         </view>
       </view>
 
-      <view class="flex flex-col gap-3">
+      <view v-if="isFirstLoading" class="flex flex-col gap-3">
+        <view v-for="i in 5" :key="i" class="bg-white border border-gray-100 rounded-2xl p-3 flex animate-pulse">
+          <view class="w-20 h-20 shrink-0 rounded-xl bg-gray-100"></view>
+          <view class="flex-1 ml-4 py-1 flex flex-col justify-between">
+            <view>
+              <view class="h-4 bg-gray-100 rounded-md w-3/4 mb-2.5"></view>
+              <view class="h-2.5 bg-gray-50 rounded-md w-full mb-1.5"></view>
+              <view class="h-2.5 bg-gray-50 rounded-md w-2/3"></view>
+            </view>
+            <view class="flex gap-4 mt-2">
+              <view class="h-2.5 bg-gray-50 rounded w-12"></view>
+              <view class="h-2.5 bg-gray-50 rounded w-12"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view v-else class="flex flex-col gap-3">
         <view 
           v-for="(game, index) in gameList" 
           :key="game.id" 
           class="bg-white border border-gray-100 rounded-2xl p-3 flex shadow-sm active:bg-gray-50 transition-all duration-300 animate-fade-in"
-          :style="{ animationDelay: `${index * 50}ms` }"
           @click="goToGameDetail(game)"
         >
           <view class="w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
             <image :src="game.cover" class="w-full h-full object-cover" mode="aspectFill"></image>
           </view>
-
           <view class="flex-1 ml-4 flex flex-col justify-between py-1">
             <view>
               <view class="flex items-center justify-between mb-1">
                 <text class="text-[15px] font-bold text-gray-900 truncate max-w-[300rpx]">{{ game.title }}</text>
                 <text class="text-[10px] text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-sm">#{{ game.tag }}</text>
               </view>
-              <text class="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">
-                {{ game.desc }}
-              </text>
+              <text class="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">{{ game.desc }}</text>
             </view>
-
             <view class="flex items-center gap-4 mt-1">
               <view class="flex items-center">
                 <text class="text-[10px] text-gray-400 mr-1">下载</text>
@@ -76,22 +104,28 @@
       </view>
     </view>
 
+    <view v-if="!isFirstLoading" class="py-6 flex items-center justify-center gap-2">
+      <view v-if="loadingStatus === 'loading'" class="i-lucide-loader-2 text-gray-400 animate-spin text-sm"></view>
+      <text class="text-[11px] text-gray-400 font-medium tracking-widest">
+        {{ loadingStatus === 'loading' ? '正在加载更多...' : (loadingStatus === 'nomore' ? '— 已经到底啦 —' : '上拉加载更多') }}
+      </text>
+    </view>
+
     <CustomTabBar :current="0" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 
 const bannerList = ref([
-  'https://picsum.photos/800/400?random=1',
-  'https://picsum.photos/800/400?random=2',
-  'https://picsum.photos/800/400?random=3'
+  '/static/banner-1.jpg',
+  '/static/banner-2.jpg',
+  '/static/banner-3.jpg'
 ])
 
-// 金刚区导航数据，配置目标路径
 const navList = ref([
   { name: '最新', url: '/pages/latest/index', icon: 'i-lucide-sparkles' },
   { name: '排行', url: '/pages/rank/index', icon: 'i-lucide-bar-chart-2' },
@@ -99,28 +133,64 @@ const navList = ref([
   { name: '分类', url: '/pages/category/index', icon: 'i-lucide-layout-grid' },
 ])
 
-const isRefreshing = ref(false)
 const gameList = ref<any[]>([])
+const page = ref(1)
+const loadingStatus = ref<'loadmore' | 'loading' | 'nomore'>('loadmore')
+const isRefreshing = ref(false)
+const isFirstLoading = ref(true) // 控制骨架屏显示
 
-onLoad(() => {
-  fetchGameListData()
-})
-
-const fetchGameListData = () => {
-  isRefreshing.value = true
-  setTimeout(() => {
-    gameList.value = [
-      { id: '1', title: '元气小骑士', desc: '像素地牢大冒险！最纯粹的动作RPG体验。', tag: '动作', rating: '4.9', downloads: '12w+', cover: 'https://picsum.photos/200/200?random=11' },
-      { id: '2', title: '星穹幻轨', desc: '银河冒险策略RPG，穿越星海的奇幻之旅。', tag: '策略', rating: '4.8', downloads: '85w+', cover: 'https://picsum.photos/200/200?random=12' },
-      { id: '3', title: '蔚蓝档案', desc: '青春战术剧情RPG，寻找属于你们的奇迹。', tag: '二次元', rating: '4.6', downloads: '43w+', cover: 'https://picsum.photos/200/200?random=13' },
-      { id: '4', title: '荒野之息', desc: '开放世界探索，攀爬、滑翔、解谜。', tag: '开放世界', rating: '5.0', downloads: '200w+', cover: 'https://picsum.photos/200/200?random=14' },
-      { id: '5', title: '极速飙车', desc: '真实的物理引擎，体验极致的漂移快感。', tag: '竞速', rating: '4.5', downloads: '30w+', cover: 'https://picsum.photos/200/200?random=15' },
-    ]
-    isRefreshing.value = false
-  }, 600)
+const generateMockData = (pageNum: number) => {
+  return Array.from({ length: 5 }).map((_, index) => {
+    const id = `game-${pageNum}-${index}`
+    return { 
+      id, 
+      title: `测试游戏 ${pageNum}-${index}`, 
+      desc: '极简风格的测试游戏数据，包含高质量的封面与描述，带你体验次元冒险。', 
+      tag: pageNum % 2 === 0 ? '动作' : '策略', 
+      rating: (5.0 - Math.random() * 0.5).toFixed(1), 
+      downloads: `${Math.floor(Math.random() * 100 + 10)}w+`, 
+      cover: `https://picsum.photos/200/200?random=${pageNum}${index}` 
+    }
+  })
 }
 
-// 金刚区点击：执行页面跳转
+const fetchGameListData = async (isRefresh = false) => {
+  if (loadingStatus.value === 'loading' || (!isRefresh && loadingStatus.value === 'nomore')) return
+  
+  loadingStatus.value = 'loading'
+  
+  // 模拟请求延迟，骨架屏能看清效果
+  setTimeout(() => {
+    const newData = generateMockData(page.value)
+    
+    if (isRefresh) {
+      gameList.value = newData
+      uni.stopPullDownRefresh()
+      isRefreshing.value = false
+    } else {
+      gameList.value = [...gameList.value, ...newData]
+    }
+    
+    isFirstLoading.value = false // 数据回来后关闭骨架屏
+    loadingStatus.value = page.value >= 3 ? 'nomore' : 'loadmore'
+  }, 1000) // 这里故意设为1秒，方便你欣赏骨架屏
+}
+
+onLoad(() => {
+  fetchGameListData(true)
+})
+
+onPullDownRefresh(() => {
+  page.value = 1
+  fetchGameListData(true)
+})
+
+onReachBottom(() => {
+  if (loadingStatus.value === 'nomore') return
+  page.value++
+  fetchGameListData(false)
+})
+
 const handleNavClick = (nav: any) => {
   uni.vibrateShort({})
   if (nav.url) {
@@ -128,15 +198,14 @@ const handleNavClick = (nav: any) => {
   }
 }
 
-// 换一批逻辑：仅打乱下方列表数据
 const refreshData = () => {
-  if (isRefreshing.value) return
+  if (isRefreshing.value || loadingStatus.value === 'loading') return
   uni.vibrateShort({})
   isRefreshing.value = true
-  setTimeout(() => {
-    gameList.value = gameList.value.sort(() => Math.random() - 0.5)
-    isRefreshing.value = false
-  }, 500)
+  isFirstLoading.value = true // 换一批时再次显示骨架屏
+  page.value = 1
+  gameList.value = [] // 清空旧数据
+  fetchGameListData(true)
 }
 
 const goToSearch = () => uni.navigateTo({ url: '/pages/search/index' })
@@ -150,7 +219,7 @@ const goToGameDetail = (game: any) => {
   animation: fadeIn 0.4s ease-out forwards;
 }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
