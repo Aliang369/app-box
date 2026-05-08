@@ -1,15 +1,17 @@
 <template>
   <view class="min-h-screen pb-32 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     
-    <view class="sticky top-0 z-30 pt-3 pb-2 px-4 bg-white/30 backdrop-blur-2xl border-b border-white/40 relative" @click="goToSearch">
-      <view class="absolute inset-0 z-40"></view>
+    <view class="sticky top-0 z-30 pt-3 pb-2 px-5 bg-transparent relative" @click="goToSearch">
+      <view class="absolute inset-0 z-10 bg-white/10 backdrop-blur-2xl border-b border-white/20"></view>
       
-      <view class="h-10 bg-white/50 border border-white/80 rounded-full shadow-[0_8px_20px_rgba(99,102,241,0.05)] flex items-center px-4 transition-all active:scale-[0.98]">
-        <text class="text-indigo-400 text-lg mr-2">🔍</text>
-        <text class="text-indigo-300 text-sm tracking-wide">寻找羁绊与冒险...</text>
+      <view class="absolute inset-0 z-40"></view>
+
+      <view class="relative z-20 h-10 bg-white/20 backdrop-blur-md border border-white/40 rounded-full flex items-center px-4 shadow-[0_4px_16px_rgba(31,38,135,0.05)] transition-all active:scale-[0.98]">
+        <text class="text-indigo-900/40 text-lg mr-2">🔍</text>
+        <text class="text-indigo-900/30 text-sm font-medium tracking-tight">探索未知的羁绊...</text>
         <view class="flex-1"></view>
-        <view class="w-7 h-7 bg-indigo-100/50 rounded-full flex items-center justify-center">
-          <text class="text-indigo-500 text-xs">📷</text>
+        <view class="w-6 h-6 border border-indigo-900/10 rounded-full flex items-center justify-center">
+          <text class="text-indigo-900/20 text-[10px]">📷</text>
         </view>
       </view>
     </view>
