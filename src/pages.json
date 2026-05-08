@@ -72,6 +72,18 @@
       }
     },
     {
+      "path": "pages/category/detail",
+      "style": { "navigationStyle": "custom", "enablePullDownRefresh": true, "backgroundTextStyle": "dark" }
+    },
+    {
+      "path": "pages/my/gifts",
+      "style": { "navigationStyle": "custom", "enablePullDownRefresh": true, "backgroundTextStyle": "dark" }
+    },
+    {
+      "path": "pages/webview/index",
+      "style": { "navigationBarTitleText": "详情" }
+    },
+    {
       "path": "pages/login/index",
       "style": {
         "navigationBarTitleText": "欢迎登录",

@@ -117,10 +117,11 @@ const menuList = ref([
 ])
 
 const handleMenuClick = (item: any) => {
-  uni.showToast({
-    title: `${item.title} 开发中`,
-    icon: 'none'
-  })
+  if (item.title === '我的礼包码') {
+    uni.navigateTo({ url: '/pages/my/gifts' })
+  } else {
+    uni.showToast({ title: `${item.title} 开发中`, icon: 'none' })
+  }
 }
 </script>
 

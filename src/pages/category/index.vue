@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 const goBack = () => uni.navigateBack()
-const goToCategory = (name: string) => uni.showToast({ title: `进入${name}频道`, icon: 'none' })
+const goToCategory = (name: string) => uni.navigateTo({ url: '/pages/category/detail?name=' + name })
 const categories = ref([
   { name: '动作冒险', icon: 'i-lucide-sword' },
   { name: '策略战争', icon: 'i-lucide-castle' },
