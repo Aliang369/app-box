@@ -1,5 +1,5 @@
 <template>
-  <view class="min-h-screen pb-6 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+  <view class="min-h-screen pb-32 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     
     <view class="sticky top-0 z-20 bg-white/60 backdrop-blur-xl shadow-sm border-b border-white/50 pt-2 pb-2 px-2 relative" @click="goToSearch">
       
@@ -65,7 +65,7 @@
           v-for="(game, index) in gameList" 
           :key="index" 
           class="bg-white/50 backdrop-blur-md border border-white/80 rounded-3xl p-3 flex shadow-[0_4px_12px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-all duration-300"
-          @click="goToDetail(game)"
+          @click="goToGameDetail(game)"
         >
           <view class="w-24 h-24 shrink-0 overflow-hidden rounded-2xl border border-white shadow-sm">
             <image :src="game.cover" class="w-full h-full object-cover" mode="aspectFill"></image>
@@ -101,12 +101,14 @@
       </view>
     </view>
 
+    <CustomTabBar :current="0" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import CustomTabBar from '@/components/CustomTabBar.vue'
 
 const isLoading = ref(true)
 const bannerList = ref([

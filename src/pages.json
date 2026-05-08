@@ -9,15 +9,21 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "首页",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationBarTitleText": "少女游戏盒子",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/my/index",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/detail/index",
       "style": {
-        "navigationBarTitleText": "游戏详情页",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationBarTitleText": "游戏详情"
       }
     },
     {
@@ -33,5 +39,21 @@
     "navigationBarTitleText": "App 盒子",
     "navigationBarBackgroundColor": "#ffffff",
     "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#94a3b8",
+    "selectedColor": "#6366f1",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "精选"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
   }
 }
