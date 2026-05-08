@@ -1,47 +1,40 @@
 <template>
-  <view class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100">
-    <view class="flex items-center h-12">
+  <view class="fixed bottom-8 left-0 right-0 z-50 flex justify-center px-6 pointer-events-none">
+    
+    <view class="pointer-events-auto w-full max-w-[360rpx] bg-white/90 backdrop-blur-xl border border-gray-200 rounded-full h-12 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex items-center justify-between px-2">
+
       <view 
-        class="flex-1 flex items-center justify-center h-full active:bg-gray-50 transition-colors" 
+        class="flex-1 flex items-center justify-center h-full transition-all duration-200"
         @click="switchTab(0, '/pages/index/index')"
       >
-        <view class="flex items-center gap-1.5">
+        <view class="flex items-center gap-2">
           <view :class="[
-            active === 0 ? 'text-gray-900' : 'text-gray-300',
-            'text-base transition-colors'
-          ]">
-            <view class="i-lucide-gamepad-2"></view>
-          </view>
-          <text :class="[
-            active === 0 ? 'text-gray-900' : 'text-gray-300',
-            'text-xs font-medium transition-colors'
-          ]">精选</text>
+            active === 0 ? 'i-lucide-compass text-indigo-600' : 'i-lucide-compass text-gray-400',
+            'text-[20px] transition-colors'
+          ]"></view>
+          <text v-if="active === 0" class="text-[12px] font-bold text-indigo-600 tracking-tight">发现</text>
         </view>
       </view>
 
       <view 
-        class="flex-1 flex items-center justify-center h-full active:bg-gray-50 transition-colors" 
+        class="flex-1 flex items-center justify-center h-full transition-all duration-200"
         @click="switchTab(1, '/pages/my/index')"
       >
-        <view class="flex items-center gap-1.5">
+        <view class="flex items-center gap-2">
           <view :class="[
-            active === 1 ? 'text-gray-900' : 'text-gray-300',
-            'text-base transition-colors'
-          ]">
-            <view class="i-lucide-user"></view>
-          </view>
-          <text :class="[
-            active === 1 ? 'text-gray-900' : 'text-gray-300',
-            'text-xs font-medium transition-colors'
-          ]">我的</text>
+            active === 1 ? 'i-lucide-user text-indigo-600' : 'i-lucide-user text-gray-400',
+            'text-[20px] transition-colors'
+          ]"></view>
+          <text v-if="active === 1" class="text-[12px] font-bold text-indigo-600 tracking-tight">我的</text>
         </view>
       </view>
+
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 
 const props = defineProps<{
@@ -55,25 +48,20 @@ watch(() => props.current, (val) => {
 }, { immediate: true })
 
 onShow(() => {
-  nextTick(() => {
-    active.value = props.current
-  })
+  active.value = props.current
 })
 
 const switchTab = (index: number, url: string) => {
   if (active.value === index) return
   
   uni.vibrateShort({})
-  
   active.value = index
   
   setTimeout(() => {
-    uni.reLaunch({
+    uni.reLaunch({ 
       url,
-      fail: () => {
-        uni.switchTab({ url })
-      }
+      fail: () => uni.switchTab({ url })
     })
-  }, 150)
+  }, 150) // 缩短延迟，因为极简风的动画更轻量
 }
 </script>

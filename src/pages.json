@@ -32,6 +32,34 @@
         "navigationBarTitleText": "搜索页",
         "navigationBarBackgroundColor": "#ffffff"
       }
+    },
+    {
+      "path": "pages/latest/index",
+      "style": {
+        "navigationBarTitleText": "最新上线",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/rank/index",
+      "style": {
+        "navigationBarTitleText": "排行榜单",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/gift/index",
+      "style": {
+        "navigationBarTitleText": "专属福利",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/category/index",
+      "style": {
+        "navigationBarTitleText": "分类大全",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {

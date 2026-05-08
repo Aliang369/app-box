@@ -1,32 +1,32 @@
 <template>
   <view class="min-h-screen bg-white">
-    
-    <view class="sticky top-0 z-30 bg-white border-b border-gray-100 px-5 pt-4 pb-3 flex items-center gap-3">
-      <view class="flex-1 h-9 bg-gray-50 border border-gray-200 rounded-lg flex items-center px-3">
-        <view class="i-lucide-search text-gray-300 text-sm mr-2"></view>
-        <input
+    <view class="sticky top-0 z-30 pt-4 pb-3 px-5 bg-white border-b border-gray-100 flex items-center gap-3">
+      <view class="flex-1 h-10 bg-gray-50 border border-gray-100 rounded-full flex items-center px-4">
+        <view class="i-lucide-search text-gray-400 text-lg mr-2"></view>
+        <input 
           v-model="keyword"
-          class="flex-1 text-sm text-gray-900 bg-transparent"
-          placeholder="搜索游戏"
+          class="flex-1 text-[13px] text-gray-900 bg-transparent"
+          placeholder="输入游戏名称..."
           placeholder-class="text-gray-300"
           focus
           @confirm="handleSearch"
+          @input="handleInput"
         />
-        <view v-if="keyword" class="i-lucide-x text-gray-300 text-sm ml-2" @click="keyword = ''"></view>
+        <view v-if="keyword" class="i-lucide-x-circle text-gray-300 ml-2" @click="clearKeyword"></view>
       </view>
-      <text class="text-sm text-gray-500 shrink-0" @click="goBack">取消</text>
+      <text class="text-[13px] font-medium text-gray-500" @click="goBack">取消</text>
     </view>
 
-    <view v-if="!isSearching" class="px-5 pt-6">
+    <view v-if="!hasSearched && keyword === ''" class="p-5">
       <view v-if="historyList.length > 0" class="mb-8">
-        <view class="flex items-center justify-between mb-3">
-          <text class="text-xs font-medium text-gray-400 uppercase tracking-wider">搜索历史</text>
+        <view class="flex items-center justify-between mb-4">
+          <text class="text-xs font-bold text-gray-400">搜索历史</text>
           <view class="i-lucide-trash-2 text-gray-300 text-sm" @click="clearHistory"></view>
         </view>
         <view class="flex flex-wrap gap-2">
-          <view
+          <view 
             v-for="(item, index) in historyList" :key="index"
-            class="px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-md text-xs text-gray-500 active:bg-gray-100 transition-colors"
+            class="px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs text-gray-600 active:bg-gray-100"
             @click="clickTag(item)"
           >
             {{ item }}
@@ -35,136 +35,114 @@
       </view>
 
       <view>
-        <text class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 block">热门搜索</text>
-        <view class="flex flex-col">
-          <view
+        <text class="text-xs font-bold text-gray-400 mb-4 block">热门搜索</text>
+        <view class="flex flex-wrap gap-2">
+          <view 
             v-for="(item, index) in hotList" :key="index"
-            class="flex items-center justify-between py-3 active:bg-gray-50 transition-colors"
-            :class="index < hotList.length - 1 ? 'border-b border-gray-50' : ''"
+            class="px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-600 active:bg-indigo-100"
             @click="clickTag(item)"
           >
-            <view class="flex items-center gap-3">
-              <text class="text-xs font-bold text-gray-300 w-4">{{ index + 1 }}</text>
-              <text class="text-sm text-gray-700">{{ item }}</text>
-            </view>
-            <view class="i-lucide-arrow-right text-gray-200 text-xs"></view>
+            {{ item }}
           </view>
         </view>
       </view>
     </view>
 
-    <view v-else class="px-5 pt-6">
-       <view v-if="isLoading" class="flex flex-col items-center justify-center py-20">
-         <view class="i-lucide-loader-2 text-gray-200 text-2xl animate-spin"></view>
-         <text class="text-xs text-gray-300 mt-3">搜索中...</text>
-       </view>
-       <view v-else class="flex flex-col">
-         <view v-if="resultList.length === 0" class="flex flex-col items-center justify-center py-20">
-           <view class="i-lucide-search text-gray-200 text-3xl"></view>
-           <text class="text-sm text-gray-400 mt-3">没有找到相关游戏</text>
-         </view>
+    <view v-else class="p-5">
+      <view v-if="searchResult.length > 0" class="flex flex-col gap-3">
+        <view 
+          v-for="game in searchResult" :key="game.id"
+          class="flex items-center p-2 rounded-xl border border-gray-50 active:bg-gray-50"
+          @click="goToDetail(game.id)"
+        >
+          <image :src="game.cover" class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-100" mode="aspectFill"></image>
+          <view class="ml-3 flex-1">
+            <text class="text-sm font-bold text-gray-900 block">{{ game.title }}</text>
+            <text class="text-xs text-gray-400 mt-1 block">#{{ game.tag }}</text>
+          </view>
+          <view class="i-lucide-chevron-right text-gray-300"></view>
+        </view>
+      </view>
 
-         <view v-else>
-           <text class="text-xs text-gray-400 mb-3">找到 {{ resultList.length }} 个结果</text>
-           
-           <view 
-             v-for="(game, index) in resultList" 
-             :key="index" 
-             class="py-3 flex items-center active:bg-gray-50 transition-colors"
-             :class="index < resultList.length - 1 ? 'border-b border-gray-50' : ''"
-             @click="goToDetail(game)"
-           >
-             <image :src="game.cover" class="w-12 h-12 rounded-lg mr-3 shrink-0" mode="aspectFill"></image>
-             <view class="flex-1 min-w-0">
-               <view class="text-sm font-medium text-gray-900 truncate">{{ game.title }}</view>
-               <view class="text-xs text-gray-400 mt-0.5 truncate">{{ game.desc }}</view>
-             </view>
-             <view class="i-lucide-chevron-right text-gray-200 text-sm ml-2"></view>
-           </view>
-         </view>
-       </view>
+      <view v-else class="flex flex-col items-center justify-center pt-20">
+        <view class="i-lucide-search-x text-4xl text-gray-200 mb-4"></view>
+        <text class="text-sm text-gray-400">未找到相关游戏</text>
+      </view>
     </view>
-
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const keyword = ref('')
-const isSearching = ref(false)
-const isLoading = ref(false)
+const hasSearched = ref(false)
+const historyList = ref<string[]>([])
+const hotList = ref(['星穹幻轨', '元气小骑士', '荒野之息'])
+const searchResult = ref<any[]>([])
 
-const historyList = ref(['元气小骑士', '二次元', '像素风', '动作RPG'])
-const hotList = ref(['星穹幻轨', '原神', '绝区零', '蔚蓝档案', '明日方舟', '小动物之星'])
-const resultList = ref<any[]>([])
+// 本地模拟数据库
+const mockDB = [
+  { id: '1', title: '元气小骑士', tag: '动作', cover: 'https://picsum.photos/200/200?random=11' },
+  { id: '2', title: '星穹幻轨', tag: '策略', cover: 'https://picsum.photos/200/200?random=12' },
+  { id: '3', title: '蔚蓝档案', tag: '二次元', cover: 'https://picsum.photos/200/200?random=13' },
+]
 
-const goBack = () => {
-  uni.navigateBack()
+// 页面加载时读取本地存储的历史记录
+onMounted(() => {
+  const savedHistory = uni.getStorageSync('search_history')
+  if (savedHistory) {
+    historyList.value = JSON.parse(savedHistory)
+  }
+})
+
+const goBack = () => uni.navigateBack()
+
+const clearKeyword = () => {
+  keyword.value = ''
+  hasSearched.value = false
+  searchResult.value = []
 }
 
-const handleSearch = (value: string) => {
-  const query = value || keyword.value
-  if (!query.trim()) {
-    uni.showToast({ title: '请输入关键词', icon: 'none' })
-    return
-  }
+// 核心搜索逻辑
+const handleSearch = () => {
+  const query = keyword.value.trim()
+  if (!query) return
   
-  isSearching.value = true
-  isLoading.value = true
+  hasSearched.value = true
   
-  const newHistory = historyList.value.filter(item => item !== query)
-  newHistory.unshift(query)
-  historyList.value = newHistory.slice(0, 10)
+  // 保存历史记录 (去重并限制 10 条)
+  let history = historyList.value.filter(item => item !== query)
+  history.unshift(query)
+  if (history.length > 10) history = history.slice(0, 10)
+  historyList.value = history
+  uni.setStorageSync('search_history', JSON.stringify(history))
 
-  setTimeout(() => {
-    if (query.includes('原') || query.includes('神')) {
-      resultList.value = [
-         { id: '101', title: '原神', desc: '开放世界冒险RPG', tag: '角色扮演', cover: 'https://picsum.photos/100/100?random=88' }
-      ]
-    } else {
-      resultList.value = [
-        { id: '102', title: query + ' 幻想', desc: '根据你搜索生成的模拟游戏', tag: '动作冒险', cover: 'https://picsum.photos/100/100?random=89' },
-        { id: '103', title: query + ' 大作战', desc: '休闲竞技派对游戏', tag: '休闲益智', cover: 'https://picsum.photos/100/100?random=90' },
-      ]
-    }
-    isLoading.value = false
-  }, 800)
+  // 模拟过滤搜索
+  searchResult.value = mockDB.filter(game => game.title.includes(query) || game.tag.includes(query))
+}
+
+// 监听输入，实时搜索
+const handleInput = () => {
+  if (keyword.value.trim() !== '') {
+    handleSearch()
+  } else {
+    hasSearched.value = false
+    searchResult.value = []
+  }
 }
 
 const clickTag = (tag: string) => {
   keyword.value = tag
-  handleSearch(tag)
+  handleSearch()
 }
 
 const clearHistory = () => {
-  uni.showModal({
-    title: '提示',
-    content: '确认清空搜索记录吗？',
-    confirmColor: '#111827',
-    success: (res) => {
-      if (res.confirm) {
-        historyList.value = []
-      }
-    }
-  })
+  historyList.value = []
+  uni.removeStorageSync('search_history')
 }
 
-const goToDetail = (game: any) => {
-  uni.navigateTo({ url: `/pages/detail/index?id=${game.id}` })
+const goToDetail = (id: string) => {
+  uni.navigateTo({ url: `/pages/detail/index?id=${id}` })
 }
 </script>
-
-<style>
-button::after { border: none; }
-::-webkit-scrollbar { display: none; }
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>

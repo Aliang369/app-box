@@ -1,162 +1,125 @@
 <template>
-  <view class="min-h-screen pb-24 bg-white">
-
-    <view class="sticky top-0 z-30 bg-white border-b border-gray-100 px-5 py-3 flex items-center">
-      <view class="i-lucide-arrow-left text-gray-900 text-lg mr-3" @click="goBack"></view>
-      <text class="text-sm font-medium text-gray-900 truncate">{{ gameDetail.title || '游戏详情' }}</text>
+  <view class="min-h-screen bg-[#F9FAFB] pb-24">
+    <view class="w-full h-64 relative bg-gray-200">
+      <image :src="gameDetail.cover" class="w-full h-full object-cover" mode="aspectFill"></image>
+      <view class="absolute inset-0 bg-gradient-to-t from-[#F9FAFB] via-transparent to-black/20"></view>
+      <view class="absolute top-12 left-4 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center" @click="goBack">
+        <view class="i-lucide-arrow-left text-white text-lg"></view>
+      </view>
     </view>
 
-    <view v-if="isLoading" class="flex justify-center items-center py-32">
-      <view class="i-lucide-loader-2 text-gray-200 text-2xl animate-spin"></view>
+    <view class="relative z-10 px-5 -mt-16">
+      <view class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+        <view class="flex justify-between items-start">
+          <view class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-sm bg-white -mt-10">
+            <image :src="gameDetail.cover" class="w-full h-full object-cover"></image>
+          </view>
+          <view class="bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full flex items-center">
+            <text class="i-lucide-star text-indigo-500 text-[12px] mr-1"></text>
+            <text class="text-[12px] font-bold text-indigo-600">{{ gameDetail.rating }}</text>
+          </view>
+        </view>
+        
+        <text class="text-xl font-bold text-gray-900 mt-3 block">{{ gameDetail.title }}</text>
+        <text class="text-xs text-gray-400 mt-1 block">#{{ gameDetail.tag }} · {{ gameDetail.downloads }} 次下载 · {{ gameDetail.size }}</text>
+        
+        <view class="mt-4 pt-4 border-t border-gray-50">
+          <text class="text-sm font-bold text-gray-900 mb-2 block">游戏简介</text>
+          <text class="text-[13px] text-gray-500 leading-relaxed">{{ gameDetail.fullDesc }}</text>
+        </view>
+      </view>
     </view>
 
-    <block v-else>
-      <view class="px-5 pt-6 pb-5">
-        <view class="flex">
-          <view class="w-20 h-20 shrink-0 overflow-hidden rounded-xl">
-            <image :src="gameDetail.cover" class="w-full h-full" mode="aspectFill"></image>
-          </view>
-          <view class="ml-4 flex-1 min-w-0 flex flex-col justify-between">
-            <view>
-              <text class="text-lg font-bold text-gray-900 truncate block">{{ gameDetail.title }}</text>
-              <view class="flex items-center gap-2 mt-1.5">
-                <view class="flex items-center">
-                  <view class="i-lucide-star text-gray-400 text-xs mr-0.5"></view>
-                  <text class="text-xs text-gray-500 font-medium">{{ gameDetail.rating }}</text>
-                </view>
-                <text class="text-gray-200">·</text>
-                <text class="text-xs text-gray-400">{{ gameDetail.size }}</text>
-                <text class="text-gray-200">·</text>
-                <text class="text-xs text-gray-400">{{ gameDetail.downloads }}下载</text>
-              </view>
-            </view>
-            <view class="flex gap-1.5 mt-2">
-              <text class="text-[10px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded" v-for="(tag, index) in gameDetail.tags" :key="index">
-                {{ tag }}
-              </text>
-            </view>
-          </view>
-        </view>
-      </view>
+    <view class="mt-6 px-5" v-if="gameDetail.screenshots && gameDetail.screenshots.length">
+      <text class="text-sm font-bold text-gray-900 mb-3 block">游戏截图</text>
+      <scroll-view scroll-x class="whitespace-nowrap" :show-scrollbar="false">
+        <image 
+          v-for="(img, idx) in gameDetail.screenshots" :key="idx"
+          :src="img" 
+          class="inline-block w-48 h-28 rounded-xl mr-3 border border-gray-100" 
+          mode="aspectFill"
+          @click="previewImage(idx)"
+        ></image>
+      </scroll-view>
+    </view>
 
-      <view class="border-t border-gray-50">
-        <view class="px-5 py-4">
-          <text class="text-xs font-medium text-gray-400 uppercase tracking-wider">游戏截图</text>
-        </view>
-        <scroll-view scroll-x class="whitespace-nowrap w-full pl-5 pr-2">
-          <image
-            v-for="(img, index) in gameDetail.screenshots"
-            :key="index"
-            :src="img"
-            class="w-36 h-64 rounded-lg mr-3 inline-block border border-gray-100"
-            mode="aspectFill"
-          ></image>
-        </scroll-view>
+    <view class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-lg border-t border-gray-100 flex items-center justify-between z-50">
+      <view class="flex flex-col">
+        <text class="text-sm font-bold text-gray-900">免费下载</text>
+        <text class="text-[10px] text-gray-400">无内购 · 无广告</text>
       </view>
-
-      <view class="px-5 mt-4">
-        <text class="text-xs font-medium text-gray-400 uppercase tracking-wider">游戏介绍</text>
-        <text class="text-sm text-gray-600 leading-relaxed mt-3 block">{{ gameDetail.description }}</text>
-      </view>
-    </block>
-
-    <view class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-safe z-50">
-      <button
+      <button 
+        :class="[
+          'h-10 px-8 rounded-full text-sm font-bold transition-all flex items-center justify-center m-0',
+          downloadStatus === 'idle' ? 'bg-indigo-600 text-white active:bg-indigo-700' : 
+          downloadStatus === 'downloading' ? 'bg-indigo-100 text-indigo-500' : 'bg-gray-100 text-gray-900'
+        ]"
         @click="handleDownload"
-        class="w-full bg-gray-900 text-white rounded-lg py-3 text-sm font-medium active:bg-gray-800 border-none m-0 transition-colors"
-        :class="{'bg-gray-300': isDownloading}"
       >
-        {{ isDownloading ? '下载中...' : '获取游戏' }}
+        {{ downloadText }}
       </button>
     </view>
-    
-    <wd-toast />
-    <wd-message-box />
-
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { useToast, useMessage } from 'wot-design-uni'
 
-const toast = useToast()
-const message = useMessage()
-
-const isLoading = ref(true)
-const isDownloading = ref(false)
-const gameId = ref('')
 const gameDetail = ref<any>({})
-
-const goBack = () => {
-  uni.navigateBack()
-}
+const downloadStatus = ref<'idle' | 'downloading' | 'done'>('idle')
+const progress = ref(0)
+const downloadText = ref('立即获取')
 
 onLoad((options: any) => {
-  if (options.id) {
-    gameId.value = options.id
-    fetchGameDetail(options.id)
+  // 实际开发中根据 options.id 去请求数据，这里做本地 mock
+  const id = options.id || '1'
+  gameDetail.value = {
+    id,
+    title: '示例游戏名称',
+    tag: '动作冒险',
+    rating: '4.8',
+    downloads: '10w+',
+    size: '1.2GB',
+    cover: `https://picsum.photos/400/400?random=${id}`,
+    fullDesc: '这是一款极其出色的动作角色扮演游戏。在这里你将探索未知的地下城，收集传说中的武器，并与强大的首领展开史诗般的战斗。游戏采用了最先进的物理引擎，打击感拳拳到肉。',
+    screenshots: [
+      `https://picsum.photos/600/300?random=${id}1`,
+      `https://picsum.photos/600/300?random=${id}2`,
+      `https://picsum.photos/600/300?random=${id}3`
+    ]
   }
 })
 
-const fetchGameDetail = (id: string) => {
-  isLoading.value = true
-  setTimeout(() => {
-    gameDetail.value = {
-      id: id,
-      title: id === '1' ? '元气小骑士' : '星穹幻轨',
-      cover: `https://picsum.photos/100/100?random=${id}1`,
-      rating: '4.8',
-      size: '128 MB',
-      downloads: '10w+',
-      tags: ['动作冒险', '像素风', '地牢'],
-      screenshots: [
-        `https://picsum.photos/300/500?random=${id}2`,
-        `https://picsum.photos/300/500?random=${id}3`,
-        `https://picsum.photos/300/500?random=${id}4`,
-      ],
-      description: '这是一款超级好玩的动作RPG。玩家将扮演主角，在广袤的奇幻世界中不断探索，结识性格迥异的伙伴，战胜各种强大的敌人。游戏拥有精美的二次元立绘、豪华的声优阵容以及绚丽的战斗特效，绝对让你爱不释手！快来缔结你的专属羁绊吧！'
-    }
-    isLoading.value = false
-  }, 600)
-}
+const goBack = () => uni.navigateBack()
 
-const handleDownload = () => {
-  if (isDownloading.value) return
-  
-  message.confirm({
-    title: '下载确认',
-    msg: `确认下载【${gameDetail.value.title}】？大小 ${gameDetail.value.size}`,
-    confirmButtonText: '下载',
-    cancelButtonText: '取消',
-  }).then(() => {
-    isDownloading.value = true
-    toast.loading('下载中...')
-    
-    setTimeout(() => {
-      isDownloading.value = false
-      toast.close()
-      toast.success('下载完成')
-    }, 2500)
-    
-  }).catch(() => {
-    console.log('用户取消了下载')
+const previewImage = (index: number) => {
+  uni.previewImage({
+    urls: gameDetail.value.screenshots,
+    current: index
   })
 }
+
+// 模拟下载流程逻辑
+const handleDownload = () => {
+  if (downloadStatus.value !== 'idle') {
+    if (downloadStatus.value === 'done') uni.showToast({ title: '打开游戏', icon: 'none' })
+    return
+  }
+  
+  downloadStatus.value = 'downloading'
+  progress.value = 0
+  
+  const timer = setInterval(() => {
+    progress.value += 15
+    downloadText.value = `下载中 ${progress.value}%`
+    
+    if (progress.value >= 100) {
+      clearInterval(timer)
+      downloadStatus.value = 'done'
+      downloadText.value = '立即打开'
+      uni.vibrateShort({})
+    }
+  }, 300)
+}
 </script>
-
-<style>
-.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 16px); }
-button::after { border: none; }
-::-webkit-scrollbar { display: none; }
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-</style>
