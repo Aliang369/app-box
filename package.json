@@ -24,6 +24,7 @@
     "@dcloudio/uni-stacktracey": "3.0.0-4020420240722001",
     "@dcloudio/vite-plugin-uni": "3.0.0-4020420240722001",
     "@iconify-json/carbon": "^1.2.20",
+    "@iconify-json/lucide": "^1.2.105",
     "@types/node": "^20.11.0",
     "@uni-helper/vite-plugin-uni-pages": "^0.2.20",
     "sass": "^1.70.0",

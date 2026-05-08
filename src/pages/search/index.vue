@@ -1,32 +1,32 @@
 <template>
-  <view class="min-h-screen bg-[#F8FAFF]">
-    <view class="sticky top-0 z-30 pt-4 pb-3 px-5 bg-white/20 backdrop-blur-2xl border-b border-white/30 flex items-center gap-4">
-      <view class="flex-1 h-11 bg-white/40 border border-white/60 rounded-2xl flex items-center px-4 shadow-sm">
-        <text class="text-indigo-600/50 text-xl mr-2">🔍</text>
+  <view class="min-h-screen bg-white">
+    
+    <view class="sticky top-0 z-30 bg-white border-b border-gray-100 px-5 pt-4 pb-3 flex items-center gap-3">
+      <view class="flex-1 h-9 bg-gray-50 border border-gray-200 rounded-lg flex items-center px-3">
+        <view class="i-lucide-search text-gray-300 text-sm mr-2"></view>
         <input
           v-model="keyword"
-          class="flex-1 text-sm text-indigo-950/80 bg-transparent"
-          placeholder="关键词..."
-          placeholder-class="text-indigo-900/20"
+          class="flex-1 text-sm text-gray-900 bg-transparent"
+          placeholder="搜索游戏"
+          placeholder-class="text-gray-300"
           focus
           @confirm="handleSearch"
         />
-        <text v-if="keyword" class="text-indigo-900/10 ml-2" @click="keyword = ''">✕</text>
+        <view v-if="keyword" class="i-lucide-x text-gray-300 text-sm ml-2" @click="keyword = ''"></view>
       </view>
-      <text class="text-sm font-bold text-indigo-600/60" @click="goBack">取消</text>
+      <text class="text-sm text-gray-500 shrink-0" @click="goBack">取消</text>
     </view>
 
-    <view v-if="!isSearching" class="p-6">
-      
-      <view v-if="historyList.length > 0" class="mb-10">
-        <view class="flex items-center justify-between mb-5">
-          <text class="text-[13px] font-black text-indigo-950/30 tracking-widest uppercase">History</text>
-          <text class="text-indigo-900/20" @click="clearHistory">🗑️</text>
+    <view v-if="!isSearching" class="px-5 pt-6">
+      <view v-if="historyList.length > 0" class="mb-8">
+        <view class="flex items-center justify-between mb-3">
+          <text class="text-xs font-medium text-gray-400 uppercase tracking-wider">搜索历史</text>
+          <view class="i-lucide-trash-2 text-gray-300 text-sm" @click="clearHistory"></view>
         </view>
-        <view class="flex flex-wrap gap-3">
+        <view class="flex flex-wrap gap-2">
           <view
             v-for="(item, index) in historyList" :key="index"
-            class="px-4 py-1.5 bg-white/40 border border-white/80 rounded-xl text-xs text-indigo-900/60 font-medium shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:scale-90 transition-all"
+            class="px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-md text-xs text-gray-500 active:bg-gray-100 transition-colors"
             @click="clickTag(item)"
           >
             {{ item }}
@@ -35,51 +35,51 @@
       </view>
 
       <view>
-        <text class="text-[13px] font-black text-indigo-950/30 tracking-widest uppercase mb-5 block">Trending</text>
-        <view class="flex flex-col gap-2">
+        <text class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 block">热门搜索</text>
+        <view class="flex flex-col">
           <view
             v-for="(item, index) in hotList" :key="index"
-            class="group flex items-center justify-between p-4 bg-white/20 border border-white/40 rounded-2xl active:bg-white/60 transition-all"
+            class="flex items-center justify-between py-3 active:bg-gray-50 transition-colors"
+            :class="index < hotList.length - 1 ? 'border-b border-gray-50' : ''"
             @click="clickTag(item)"
           >
             <view class="flex items-center gap-3">
-              <text class="text-xs font-black text-indigo-600/30">0{{ index + 1 }}</text>
-              <text class="text-sm font-bold text-indigo-950/70">{{ item }}</text>
+              <text class="text-xs font-bold text-gray-300 w-4">{{ index + 1 }}</text>
+              <text class="text-sm text-gray-700">{{ item }}</text>
             </view>
-            <text class="text-indigo-900/10 text-xs group-active:translate-x-1 transition-transform">›</text>
+            <view class="i-lucide-arrow-right text-gray-200 text-xs"></view>
           </view>
         </view>
       </view>
     </view>
 
-    <view v-else class="p-6">
+    <view v-else class="px-5 pt-6">
        <view v-if="isLoading" class="flex flex-col items-center justify-center py-20">
-         <view class="text-3xl text-indigo-900/10 animate-spin">⟳</view>
-         <text class="text-xs text-indigo-950/20 mt-4 tracking-widest uppercase">Searching...</text>
+         <view class="i-lucide-loader-2 text-gray-200 text-2xl animate-spin"></view>
+         <text class="text-xs text-gray-300 mt-3">搜索中...</text>
        </view>
-       <view v-else class="flex flex-col gap-3">
+       <view v-else class="flex flex-col">
          <view v-if="resultList.length === 0" class="flex flex-col items-center justify-center py-20">
-           <view class="w-20 h-20 bg-white/30 rounded-full flex items-center justify-center mb-3">
-             <text class="text-3xl text-indigo-900/10">🔍</text>
-           </view>
-           <text class="text-sm text-indigo-950/40">No results found</text>
+           <view class="i-lucide-search text-gray-200 text-3xl"></view>
+           <text class="text-sm text-gray-400 mt-3">没有找到相关游戏</text>
          </view>
 
          <view v-else>
-           <view class="text-xs text-indigo-950/30 mb-3">Found {{ resultList.length }} results</view>
+           <text class="text-xs text-gray-400 mb-3">找到 {{ resultList.length }} 个结果</text>
            
            <view 
              v-for="(game, index) in resultList" 
              :key="index" 
-             class="p-4 rounded-2xl flex items-center bg-white/30 border border-white/60 shadow-[0_2px_8px_rgba(0,0,0,0.02)] active:bg-white/50 transition-all"
+             class="py-3 flex items-center active:bg-gray-50 transition-colors"
+             :class="index < resultList.length - 1 ? 'border-b border-gray-50' : ''"
              @click="goToDetail(game)"
            >
-             <image :src="game.cover" class="w-14 h-14 rounded-xl mr-3 shrink-0" mode="aspectFill"></image>
+             <image :src="game.cover" class="w-12 h-12 rounded-lg mr-3 shrink-0" mode="aspectFill"></image>
              <view class="flex-1 min-w-0">
-               <view class="text-sm font-bold text-indigo-950/80 truncate">{{ game.title }}</view>
-               <view class="text-xs text-indigo-950/40 mt-0.5 truncate">{{ game.desc }}</view>
+               <view class="text-sm font-medium text-gray-900 truncate">{{ game.title }}</view>
+               <view class="text-xs text-gray-400 mt-0.5 truncate">{{ game.desc }}</view>
              </view>
-             <view class="text-xs text-indigo-600/50 font-medium">→</view>
+             <view class="i-lucide-chevron-right text-gray-200 text-sm ml-2"></view>
            </view>
          </view>
        </view>
@@ -141,7 +141,7 @@ const clearHistory = () => {
   uni.showModal({
     title: '提示',
     content: '确认清空搜索记录吗？',
-    confirmColor: '#4f46e5',
+    confirmColor: '#111827',
     success: (res) => {
       if (res.confirm) {
         historyList.value = []
