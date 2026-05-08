@@ -3,7 +3,9 @@
     
     <view class="sticky top-0 z-10 bg-white/60 backdrop-blur-md shadow-sm border-b border-white/50" @click="goToSearch">
       <wd-search 
-        placeholder="搜索你想玩的游戏..." 
+        placeholder="寻找羁绊与冒险..." 
+        placeholder-left
+        disabled
         hide-cancel 
         bg-color="rgba(255, 255, 255, 0.5)"
         class="custom-search"

@@ -69,17 +69,28 @@
       </button>
     </view>
     
+    <wd-toast />
+    <wd-message-box />
+
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+// 【新增】引入 Wot Design 的弹窗控制方法
+import { useToast, useMessage } from 'wot-design-uni'
+
+// 初始化弹窗实例
+const toast = useToast()
+const message = useMessage()
 
 const isLoading = ref(true)
 const isDownloading = ref(false)
 const gameId = ref('')
 const gameDetail = ref<any>({})
+
+// ... (这里的 onLoad 和 fetchGameDetail 保持不变，无需修改) ...
 
 onLoad((options: any) => {
   if (options.id) {
@@ -89,6 +100,7 @@ onLoad((options: any) => {
 })
 
 const fetchGameDetail = (id: string) => {
+  // ... (保持你现有的代码) ...
   isLoading.value = true
   setTimeout(() => {
     gameDetail.value = {
@@ -110,14 +122,36 @@ const fetchGameDetail = (id: string) => {
   }, 600)
 }
 
+// 【重点修改】全新的沉浸式下载交互
 const handleDownload = () => {
   if (isDownloading.value) return
-  isDownloading.value = true
-  uni.showToast({ title: '开始下载', icon: 'success' })
-  setTimeout(() => {
-    isDownloading.value = false
-    uni.showToast({ title: '下载完成', icon: 'success' })
-  }, 2000)
+  
+  // 1. 弹出确认框 (增加仪式感和二次元风味)
+  message.confirm({
+    title: '系统提示',
+    msg: `确认消耗 ${gameDetail.value.size} 流量与【${gameDetail.value.title}】建立精神链接吗？`,
+    confirmButtonText: '立即建立',
+    cancelButtonText: '稍后再说',
+  }).then(() => {
+    // 用户点击了确认
+    isDownloading.value = true
+    
+    // 2. 弹出带 Loading 圈的专属提示
+    toast.loading('正在同步数据...')
+    
+    // 模拟网络下载过程
+    setTimeout(() => {
+      isDownloading.value = false
+      toast.close() // 关闭 loading
+      
+      // 3. 成功后的华丽提示
+      toast.success('链接成功！开始冒险吧')
+    }, 2500)
+    
+  }).catch(() => {
+    // 用户点击了取消，静默处理即可
+    console.log('用户取消了链接')
+  })
 }
 </script>
 
