@@ -3,7 +3,7 @@
     <view class="w-full max-w-[440rpx] bg-white/70 backdrop-blur-2xl border border-white/80 rounded-full h-14 shadow-[0_12px_40px_rgba(99,102,241,0.15)] flex items-center justify-between relative px-1.5">
       
       <view
-        class="absolute h-11 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) z-0 shadow-lg shadow-indigo-300/50"
+        class="absolute h-11 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300 cubic-bezier(0.34, 1.56, 0.64, 1) z-0 shadow-lg shadow-indigo-300/50"
         :style="{
           width: '46%',
           left: active === 0 ? '3%' : '51%'
@@ -41,7 +41,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 
 const props = defineProps<{
   current: number
@@ -51,6 +52,12 @@ const active = ref(props.current)
 
 watch(() => props.current, (val) => {
   active.value = val
+}, { immediate: true })
+
+onShow(() => {
+  nextTick(() => {
+    active.value = props.current
+  })
 })
 
 const switchTab = (index: number, url: string) => {
@@ -59,9 +66,15 @@ const switchTab = (index: number, url: string) => {
   uni.vibrateShort({})
   
   active.value = index
+  
   setTimeout(() => {
-    uni.switchTab({ url })
-  }, 100)
+    uni.reLaunch({
+      url,
+      fail: () => {
+        uni.switchTab({ url })
+      }
+    })
+  }, 200)
 }
 </script>
 

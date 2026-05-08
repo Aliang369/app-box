@@ -1,18 +1,17 @@
 <template>
   <view class="min-h-screen pb-32 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
     
-    <view class="sticky top-0 z-20 bg-white/60 backdrop-blur-xl shadow-sm border-b border-white/50 pt-2 pb-2 px-2 relative" @click="goToSearch">
+    <view class="sticky top-0 z-30 pt-3 pb-2 px-4 bg-white/30 backdrop-blur-2xl border-b border-white/40 relative" @click="goToSearch">
+      <view class="absolute inset-0 z-40"></view>
       
-      <view class="absolute inset-0 z-30"></view>
-
-      <wd-search 
-        placeholder="寻找羁绊与冒险..." 
-        placeholder-left
-        disabled
-        hide-cancel 
-        bg-color="rgba(255, 255, 255, 0.5)"
-        class="custom-search"
-      ></wd-search>
+      <view class="h-10 bg-white/50 border border-white/80 rounded-full shadow-[0_8px_20px_rgba(99,102,241,0.05)] flex items-center px-4 transition-all active:scale-[0.98]">
+        <text class="text-indigo-400 text-lg mr-2">🔍</text>
+        <text class="text-indigo-300 text-sm tracking-wide">寻找羁绊与冒险...</text>
+        <view class="flex-1"></view>
+        <view class="w-7 h-7 bg-indigo-100/50 rounded-full flex items-center justify-center">
+          <text class="text-indigo-500 text-xs">📷</text>
+        </view>
+      </view>
     </view>
 
     <view class="px-4 mt-3 relative z-10">
