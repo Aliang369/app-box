@@ -7,21 +7,23 @@
     </view>
 
     <block v-else>
-      <view class="bg-white px-6 pt-6 pb-8 rounded-b-[40rpx] shadow-sm shadow-gray-100/50">
-        <view class="flex items-start gap-5">
-          <image :src="gameInfo.cover" class="w-24 h-24 rounded-3xl bg-gray-100 shadow-md shadow-gray-200/50 border border-gray-50" mode="aspectFill" />
+      <view class="px-6 pt-6 pb-4">
+        <view class="flex items-start gap-4">
+          <image :src="gameInfo.cover" class="w-20 h-20 rounded-2xl bg-gray-100 object-cover" mode="aspectFill" />
           <view class="flex-1 pt-1">
-            <text class="text-xl font-black text-gray-900 block mb-2 leading-tight">{{ gameInfo.title }}</text>
-            <view class="flex flex-wrap gap-2 mb-3">
-              <view class="px-2.5 py-1 bg-gray-50 rounded-md border border-gray-100">
-                <text class="text-[10px] text-gray-500 font-bold">{{ gameInfo.tag }}</text>
-              </view>
-              <view class="px-2.5 py-1 bg-gray-50 rounded-md border border-gray-100 flex items-center gap-1">
-                <view class="i-lucide-star text-[10px] text-amber-500 fill-current"></view>
-                <text class="text-[10px] text-gray-600 font-black">{{ gameInfo.rating }}</text>
+            <text class="text-xl font-black text-gray-900 block mb-1">{{ gameInfo.title }}</text>
+            <view class="flex items-center gap-2 mb-2">
+              <view class="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded text-[10px] font-bold">
+                {{ gameInfo.tag }}
               </view>
             </view>
-            <text class="text-xs text-gray-400 font-bold">{{ gameInfo.downloads }} 次下载</text>
+            <view class="flex items-center gap-3 text-xs text-gray-400 font-bold">
+              <view class="flex items-center gap-1">
+                <view class="i-lucide-star text-[12px] text-amber-500 fill-current"></view>
+                <text class="text-gray-700">{{ gameInfo.rating }}</text>
+              </view>
+              <text>{{ gameInfo.downloads }} 次下载</text>
+            </view>
           </view>
         </view>
       </view>
@@ -170,12 +172,26 @@ const handleFavorite = async () => {
     return
   }
   const user = JSON.parse(userInfoStr)
+  
   try {
     const res: any = await toggleFavoriteApi({ user_id: user.id, game_id: gameInfo.value.id })
     isFavorited.value = res.isFavorited
-    uni.showToast({ title: res.message, icon: 'none' })
-    if(res.isFavorited) uni.vibrateShort({}) // 收藏成功给个微弱震动
-  } catch (e) {}
+    
+    // 强制前端显示 Toast，不依赖后端的 message 字段
+    uni.showToast({
+      title: isFavorited.value ? '收藏成功' : '已取消收藏',
+      icon: 'none',
+      duration: 2000
+    })
+    
+    // 兼容处理：H5在电脑端可能会因为不支持震动而报错
+    try {
+      if(isFavorited.value) uni.vibrateShort({})
+    } catch(err) {}
+    
+  } catch (e) {
+    console.error('收藏失败', e)
+  }
 }
 
 const handleDownload = () => {

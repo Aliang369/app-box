@@ -32,9 +32,8 @@
           "titleNView": {
             "buttons": [
               {
-                "text": "\\ue61d",
-                "fontSrc": "/static/iconfont.ttf",
-                "fontSize": "22px",
+                "text": "分享",
+                "fontSize": "14px",
                 "color": "#333333"
               }
             ]

@@ -31,3 +31,20 @@ export const searchGames = (params: { keyword: string; page?: number; limit?: nu
     data: params
   })
 }
+
+// 获取游戏列表 (别名)
+export const getGameListApi = (data: any) => {
+  return request({
+    url: '/api/games',
+    method: 'GET',
+    data
+  })
+}
+
+// 获取游戏详情 (别名)
+export const getGameDetailApi = (id: string | number) => {
+  return request({
+    url: `/api/games/${id}`,
+    method: 'GET'
+  })
+}
