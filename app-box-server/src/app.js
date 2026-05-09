@@ -66,6 +66,10 @@ app.post('/api/login', async (req, res) => {
   } catch (e) { res.status(500).json({ code: 500 }); }
 });
 
+// ==========================================
+// 补回的缺失接口：礼包、收藏、足迹相关
+// ==========================================
+
 // 礼包领取
 app.post('/api/gifts/claim', async (req, res) => {
   const { user_id, game_id } = req.body;
@@ -74,6 +78,56 @@ app.post('/api/gifts/claim', async (req, res) => {
     await db.query('INSERT INTO user_gifts (user_id, game_id, gift_code) VALUES (?, ?, ?)', [user_id, game_id, giftCode]);
     res.json({ code: 0, data: { gift_code: giftCode } });
   } catch (e) { res.json({ code: 400, message: '已领取或领取失败' }); }
+});
+
+// 补回：获取我的礼包列表
+app.get('/api/my/gifts', async (req, res) => {
+  const user_id = req.query.user_id;
+  try {
+    const [rows] = await db.query(`
+      SELECT ug.gift_code, ug.created_at, g.title, g.cover 
+      FROM user_gifts ug JOIN games g ON ug.game_id = g.id 
+      WHERE ug.user_id = ? ORDER BY ug.id DESC
+    `, [user_id]);
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) { res.status(500).json({ code: 500 }); }
+});
+
+// 补回：切换收藏状态
+app.post('/api/favorites/toggle', async (req, res) => {
+  const { user_id, game_id } = req.body;
+  try {
+    const [rows] = await db.query('SELECT * FROM user_favorites WHERE user_id = ? AND game_id = ?', [user_id, game_id]);
+    if (rows.length > 0) {
+      await db.query('DELETE FROM user_favorites WHERE user_id = ? AND game_id = ?', [user_id, game_id]);
+      res.json({ code: 0, message: '已取消收藏', data: { isFavorited: false } });
+    } else {
+      await db.query('INSERT INTO user_favorites (user_id, game_id) VALUES (?, ?)', [user_id, game_id]);
+      res.json({ code: 0, message: '收藏成功', data: { isFavorited: true } });
+    }
+  } catch (error) { res.status(500).json({ code: 500 }); }
+});
+
+// 补回：检查是否收藏
+app.get('/api/favorites/check', async (req, res) => {
+  const { user_id, game_id } = req.query;
+  try {
+    const [rows] = await db.query('SELECT * FROM user_favorites WHERE user_id = ? AND game_id = ?', [user_id, game_id]);
+    res.json({ code: 0, data: { isFavorited: rows.length > 0 } });
+  } catch (error) { res.json({ code: 0, data: { isFavorited: false } }); }
+});
+
+// 补回：获取我的收藏列表
+app.get('/api/my/favorites', async (req, res) => {
+  const user_id = req.query.user_id;
+  try {
+    const [rows] = await db.query(`
+      SELECT g.* FROM user_favorites uf 
+      JOIN games g ON uf.game_id = g.id 
+      WHERE uf.user_id = ? ORDER BY uf.created_at DESC
+    `, [user_id]);
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) { res.status(500).json({ code: 500 }); }
 });
 
 // 获取统计数据 (收藏、足迹、礼包数)
@@ -95,6 +149,20 @@ app.post('/api/footprints/add', async (req, res) => {
     res.json({ code: 0 });
   } catch (e) { res.json({ code: 500 }); }
 });
+
+// 补回：获取我的足迹列表
+app.get('/api/my/footprints', async (req, res) => {
+  const user_id = req.query.user_id;
+  try {
+    const [rows] = await db.query(`
+      SELECT g.*, uf.view_time FROM user_footprints uf 
+      JOIN games g ON uf.game_id = g.id 
+      WHERE uf.user_id = ? ORDER BY uf.view_time DESC
+    `, [user_id]);
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) { res.status(500).json({ code: 500 }); }
+});
+
 
 // ==========================================
 // ====== 2. B端 (Admin后台) 管理接口 =======
