@@ -55,9 +55,9 @@ const getTableList = async (params: any) => {
       list = list.filter((item: any) => item.title.includes(params.title));
     }
 
-    return { data: { list, pageNum: 1, pageSize: 10, total: list.length } };
+    return { list, pageNum: 1, pageSize: 10, total: list.length };
   } catch (error) {
-    return { data: { list: [], total: 0 } };
+    return { list: [], total: 0 };
   }
 };
 

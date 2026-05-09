@@ -31,15 +31,13 @@ const getTableList = async (params: any) => {
     }
 
     return {
-      data: {
-        list: list,
-        pageNum: 1,
-        pageSize: 10,
-        total: list.length
-      }
+      list: list,
+      pageNum: 1,
+      pageSize: 10,
+      total: list.length
     };
   } catch (error) {
-    return { data: { list: [], total: 0 } };
+    return { list: [], total: 0 };
   }
 };
 
