@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { searchGames } from '@/api/game'
 
 const keyword = ref('')
 const hasSearched = ref(false)
@@ -76,12 +77,6 @@ const isFirstLoading = ref(false)
 const historyList = ref<string[]>([])
 const hotList = ref(['星穹幻轨', '元气小骑士', '荒野之息'])
 const searchResult = ref<any[]>([])
-
-const mockDB = [
-  { id: '1', title: '元气小骑士', tag: '动作', cover: 'https://picsum.photos/200/200?random=11' },
-  { id: '2', title: '星穹幻轨', tag: '策略', cover: 'https://picsum.photos/200/200?random=12' },
-  { id: '3', title: '蔚蓝档案', tag: '二次元', cover: 'https://picsum.photos/200/200?random=13' },
-]
 
 onMounted(() => {
   const savedHistory = uni.getStorageSync('search_history')
@@ -96,24 +91,29 @@ const clearKeyword = () => {
   searchResult.value = []
 }
 
-const handleSearch = () => {
+const handleSearch = async () => {
   const query = keyword.value.trim()
   if (!query) return
   
   hasSearched.value = true
-  isFirstLoading.value = true // 开始展示搜索骨架屏
+  isFirstLoading.value = true // 显示骨架屏
   
+  // 记录历史
   let history = historyList.value.filter(item => item !== query)
   history.unshift(query)
   if (history.length > 10) history = history.slice(0, 10)
   historyList.value = history
   uni.setStorageSync('search_history', JSON.stringify(history))
 
-  // 模拟网络请求搜索延迟
-  setTimeout(() => {
-    searchResult.value = mockDB.filter(game => game.title.includes(query) || game.tag.includes(query))
+  try {
+    // 🚀 发起真实搜索请求
+    const newData = await searchGames({ keyword: query, limit: 20 })
+    searchResult.value = newData
+  } catch (error) {
+    uni.showToast({ title: '搜索出错', icon: 'none' })
+  } finally {
     isFirstLoading.value = false // 结束骨架屏
-  }, 800)
+  }
 }
 
 const clickTag = (tag: string) => {

@@ -827,6 +827,20 @@
       }
     },
     {
+      "path": "/banner/index",
+      "name": "BannerIndex",
+      "component": "/banner/index",
+      "meta": {
+        "icon": "Picture",
+        "title": "轮播图管理",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": false,
+        "isKeepAlive": true
+      }
+    },
+    {
       "path": "/system",
       "name": "system",
       "redirect": "/system/accountManage",
