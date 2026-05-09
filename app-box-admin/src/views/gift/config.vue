@@ -4,7 +4,7 @@
       <template #cover="scope">
         <el-image :src="scope.row.cover" style="width: 45px; height: 45px; border-radius: 6px" fit="cover" />
       </template>
-      
+
       <template #operation="scope">
         <el-button type="primary" link size="small" @click="handleEdit(scope.row)">配置礼包</el-button>
       </template>
@@ -50,11 +50,11 @@ const getTableList = async (params: any) => {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/gift-configs`).then(r => r.json());
     let list = res.data || [];
-    
+
     if (params.title) {
       list = list.filter((item: any) => item.title.includes(params.title));
     }
-    
+
     return { data: { list, pageNum: 1, pageSize: 10, total: list.length } };
   } catch (error) {
     return { data: { list: [], total: 0 } };

@@ -21,12 +21,12 @@ const getTableList = async (params: any) => {
   try {
     const res = await fetch("http://localhost:3000/api/admin/users").then(r => r.json());
     let list = res.data || [];
-    
+
     // 前端模拟搜索（等后端有真实查询接口可去掉）
     if (params.username) {
       list = list.filter((item: any) => item.username.includes(params.username));
     }
-    
+
     // ProTable 需要特定的返回结构
     return {
       data: {

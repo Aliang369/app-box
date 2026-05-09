@@ -21,7 +21,7 @@ const getTableList = async (params: any) => {
   try {
     const res = await fetch("http://localhost:3000/api/admin/gift-records").then(r => r.json());
     let list = res.data || [];
-    
+
     // 前端模拟按用户名或激活码搜索（等后端支持后可直接传 params）
     if (params.username) {
       list = list.filter((item: any) => item.username && item.username.includes(params.username));
@@ -29,7 +29,7 @@ const getTableList = async (params: any) => {
     if (params.gift_code) {
       list = list.filter((item: any) => item.gift_code && item.gift_code.includes(params.gift_code));
     }
-    
+
     return {
       data: {
         list: list,

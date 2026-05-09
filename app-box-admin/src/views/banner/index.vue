@@ -69,12 +69,12 @@ const getTableList = async (params: any) => {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/banners`).then(r => r.json());
     let list = res.data || [];
-    
+
     // 按关联游戏 ID 搜索
     if (params.game_id) {
       list = list.filter((item: any) => String(item.game_id).includes(String(params.game_id)));
     }
-    
+
     return {
       data: { list, pageNum: 1, pageSize: 10, total: list.length }
     };

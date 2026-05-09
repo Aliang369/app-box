@@ -99,16 +99,20 @@ const getTableList = async (params: any) => {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/games`).then(r => r.json());
     let list = res.data || [];
-    
+
     // 前端模拟按游戏名称搜索
     if (params.title) {
       list = list.filter((item: any) => item.title.includes(params.title));
     }
-    
+
     // 解析 JSON 截图数据
     list = list.map((item: any) => ({
       ...item,
-      screenshots: item.screenshots ? (typeof item.screenshots === "string" ? JSON.parse(item.screenshots) : item.screenshots) : []
+      screenshots: item.screenshots
+        ? typeof item.screenshots === "string"
+          ? JSON.parse(item.screenshots)
+          : item.screenshots
+        : []
     }));
 
     return {
