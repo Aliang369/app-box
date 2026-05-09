@@ -119,6 +119,7 @@
 import { ref } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
+import { getGameList } from '@/api/game'
 
 const bannerList = ref([
   '/static/banner-1.jpg',
@@ -139,29 +140,13 @@ const loadingStatus = ref<'loadmore' | 'loading' | 'nomore'>('loadmore')
 const isRefreshing = ref(false)
 const isFirstLoading = ref(true) // 控制骨架屏显示
 
-const generateMockData = (pageNum: number) => {
-  return Array.from({ length: 5 }).map((_, index) => {
-    const id = `game-${pageNum}-${index}`
-    return { 
-      id, 
-      title: `测试游戏 ${pageNum}-${index}`, 
-      desc: '极简风格的测试游戏数据，包含高质量的封面与描述，带你体验次元冒险。', 
-      tag: pageNum % 2 === 0 ? '动作' : '策略', 
-      rating: (5.0 - Math.random() * 0.5).toFixed(1), 
-      downloads: `${Math.floor(Math.random() * 100 + 10)}w+`, 
-      cover: `https://picsum.photos/200/200?random=${pageNum}${index}` 
-    }
-  })
-}
-
 const fetchGameListData = async (isRefresh = false) => {
   if (loadingStatus.value === 'loading' || (!isRefresh && loadingStatus.value === 'nomore')) return
   
   loadingStatus.value = 'loading'
   
-  // 模拟请求延迟，骨架屏能看清效果
-  setTimeout(() => {
-    const newData = generateMockData(page.value)
+  try {
+    const newData = await getGameList({ page: page.value, limit: 5 })
     
     if (isRefresh) {
       gameList.value = newData
@@ -171,9 +156,14 @@ const fetchGameListData = async (isRefresh = false) => {
       gameList.value = [...gameList.value, ...newData]
     }
     
-    isFirstLoading.value = false // 数据回来后关闭骨架屏
+    isFirstLoading.value = false
+    
     loadingStatus.value = page.value >= 3 ? 'nomore' : 'loadmore'
-  }, 1000) // 这里故意设为1秒，方便你欣赏骨架屏
+  } catch (error) {
+    console.error('请求失败:', error)
+    isFirstLoading.value = false
+    loadingStatus.value = 'loadmore'
+  }
 }
 
 onLoad(() => {
