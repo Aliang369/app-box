@@ -58,8 +58,18 @@
         <view class="mt-8" v-if="screenshots.length > 0">
           <text class="text-sm font-black text-gray-900 block mb-4 tracking-tighter">游戏截图</text>
           <scroll-view scroll-x class="whitespace-nowrap w-full" shows-scrollbar="false">
-            <view v-for="(img, idx) in screenshots" :key="idx" class="inline-block w-72 h-40 mr-3 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
-              <image :src="img" class="w-full h-full" mode="aspectFill" @click="previewImage(idx)"></image>
+            <view
+              v-for="(img, idx) in screenshots"
+              :key="idx"
+              class="inline-block h-64 mr-3 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100"
+              style="min-width: 200rpx;"
+            >
+              <image
+                :src="img"
+                class="h-full"
+                mode="heightFix"
+                @click="previewImage(idx)"
+              ></image>
             </view>
           </scroll-view>
         </view>

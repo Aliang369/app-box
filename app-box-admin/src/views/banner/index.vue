@@ -2,7 +2,7 @@
   <div class="p-6 bg-white rounded-lg shadow-sm m-4">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-bold text-gray-800">首页轮播图管理</h2>
-      <el-button type="primary" @click="openAddDialog()"> + 新增轮播图 </el-button>
+      <el-button type="primary" @click="openAddDialog"> + 新增轮播图 </el-button>
     </div>
 
     <el-table :data="tableData" style="width: 100%" border v-loading="loading">
@@ -14,19 +14,19 @@
       </el-table-column>
       <el-table-column prop="game_id" label="关联游戏ID" width="120" align="center" />
       <el-table-column prop="sort_order" label="排序权重" width="100" align="center" />
-      <el-table-column label="操作" fixed="right" width="180" align="center">
+      <el-table-column label="操作" fixed="right" width="150" align="center">
         <template #default="scope">
-          <el-button type="primary" size="small" plain mr-2 @click="openEditDialog(scope.row)">编辑</el-button>
+          <el-button type="primary" size="small" link @click="handleEdit(scope.row)">编辑</el-button>
           <el-popconfirm title="确定要删除这张轮播图吗？" @confirm="handleDelete(scope.row.id)">
             <template #reference>
-              <el-button type="danger" size="small" plain>删除</el-button>
+              <el-button type="danger" size="small" link>删除</el-button>
             </template>
           </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog :title="isEdit ? '编辑轮播图' : '新增轮播图'" v-model="dialogVisible" width="500px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="formData" label-width="100px">
         <el-form-item label="图片URL">
           <el-input v-model="formData.image_url" placeholder="建议填入1080x750比例的图片" />
@@ -42,7 +42,9 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm" :loading="submitLoading">{{ isEdit ? '确定修改' : '确定添加' }}</el-button>
+          <el-button type="primary" @click="submitForm" :loading="submitLoading">
+            {{ isEdit ? "确定修改" : "确定添加" }}
+          </el-button>
         </span>
       </template>
     </el-dialog>
@@ -50,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { ElMessage } from "element-plus";
 
 const BASE_URL = "http://localhost:3000";
@@ -60,7 +62,9 @@ const loading = ref(false);
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
 const isEdit = ref(false);
-const editId = ref<number | null>(null);
+const currentId = ref<number | null>(null);
+
+const dialogTitle = computed(() => (isEdit.value ? "编辑轮播图" : "新增轮播图"));
 
 const formData = ref({
   image_url: "",
@@ -87,7 +91,7 @@ onMounted(() => {
 
 const openAddDialog = () => {
   isEdit.value = false;
-  editId.value = null;
+  currentId.value = null;
   formData.value = {
     image_url: "",
     game_id: "",
@@ -96,14 +100,10 @@ const openAddDialog = () => {
   dialogVisible.value = true;
 };
 
-const openEditDialog = (row: any) => {
+const handleEdit = (row: any) => {
   isEdit.value = true;
-  editId.value = row.id;
-  formData.value = {
-    image_url: row.image_url || "",
-    game_id: row.game_id || "",
-    sort_order: row.sort_order || 0
-  };
+  currentId.value = row.id;
+  formData.value = { ...row };
   dialogVisible.value = true;
 };
 
@@ -113,26 +113,18 @@ const submitForm = async () => {
   }
 
   submitLoading.value = true;
+  const url = isEdit.value ? `${BASE_URL}/api/banners/${currentId.value}` : `${BASE_URL}/api/banners`;
+  const method = isEdit.value ? "PUT" : "POST";
+
   try {
-    let res;
-    if (isEdit.value && editId.value) {
-      // 修改模式：调用 PUT 接口
-      res = await fetch(`${BASE_URL}/api/banners/${editId.value}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData.value)
-      }).then(r => r.json());
-    } else {
-      // 新增模式：调用 POST 接口
-      res = await fetch(`${BASE_URL}/api/banners`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData.value)
-      }).then(r => r.json());
-    }
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData.value)
+    }).then(r => r.json());
 
     if (res.code === 0) {
-      ElMessage.success(isEdit.value ? "修改成功！" : "添加成功！");
+      ElMessage.success(isEdit.value ? "修改成功" : "添加成功");
       dialogVisible.value = false;
       fetchList();
     } else {
