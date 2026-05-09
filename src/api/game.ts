@@ -7,3 +7,10 @@ export const getGameList = (params?: { page: number; limit?: number }) => {
     data: params
   })
 }
+
+export const getBannerList = () => {
+  return request({
+    url: '/api/banners',
+    method: 'GET'
+  })
+}

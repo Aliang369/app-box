@@ -119,13 +119,9 @@
 import { ref } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
-import { getGameList } from '@/api/game'
+import { getGameList, getBannerList } from '@/api/game'
 
-const bannerList = ref([
-  '/static/banner-1.jpg',
-  '/static/banner-2.jpg',
-  '/static/banner-3.jpg'
-])
+const bannerList = ref<string[]>([])
 
 const navList = ref([
   { name: '最新', url: '/pages/latest/index', icon: 'i-lucide-sparkles' },
@@ -146,23 +142,31 @@ const fetchGameListData = async (isRefresh = false) => {
   loadingStatus.value = 'loading'
   
   try {
-    const newData = await getGameList({ page: page.value, limit: 5 })
-    
     if (isRefresh) {
+      const [banners, newData] = await Promise.all([
+        getBannerList(),
+        getGameList({ page: 1, limit: 5 })
+      ])
+      
+      bannerList.value = banners.map((item: any) => item.image_url)
+      
       gameList.value = newData
       uni.stopPullDownRefresh()
       isRefreshing.value = false
+      loadingStatus.value = newData.length < 5 ? 'nomore' : 'loadmore'
     } else {
+      const newData = await getGameList({ page: page.value, limit: 5 })
       gameList.value = [...gameList.value, ...newData]
+      
+      loadingStatus.value = newData.length < 5 ? 'nomore' : 'loadmore'
     }
     
     isFirstLoading.value = false
-    
-    loadingStatus.value = page.value >= 3 ? 'nomore' : 'loadmore'
   } catch (error) {
     console.error('请求失败:', error)
     isFirstLoading.value = false
     loadingStatus.value = 'loadmore'
+    if (isRefresh) uni.stopPullDownRefresh()
   }
 }
 
