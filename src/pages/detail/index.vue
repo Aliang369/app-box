@@ -7,23 +7,36 @@
     </view>
 
     <block v-else>
-      <view class="px-6 pt-6 pb-4">
-        <view class="flex items-start gap-4">
-          <image :src="gameInfo.cover" class="w-20 h-20 rounded-2xl bg-gray-100 object-cover" mode="aspectFill" />
-          <view class="flex-1 pt-1">
-            <text class="text-xl font-black text-gray-900 block mb-1">{{ gameInfo.title }}</text>
-            <view class="flex items-center gap-2 mb-2">
-              <view class="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded text-[10px] font-bold">
-                {{ gameInfo.tag }}
+      <view class="px-6 pt-6 pb-6 bg-white">
+        <view class="flex items-center gap-4 mb-6">
+          <image :src="gameInfo.cover" class="w-20 h-20 rounded-2xl bg-gray-100 shadow-sm border border-gray-50 object-cover" mode="aspectFill" />
+          <view class="flex-1 flex flex-col justify-center">
+            <text class="text-xl font-black text-gray-900 block mb-1.5">{{ gameInfo.title }}</text>
+            <view class="flex items-center">
+              <view class="px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded text-[10px] font-bold border border-indigo-100/50">
+                {{ gameInfo.tag || '热门游戏' }}
               </view>
             </view>
-            <view class="flex items-center gap-3 text-xs text-gray-400 font-bold">
-              <view class="flex items-center gap-1">
-                <view class="i-lucide-star text-[12px] text-amber-500 fill-current"></view>
-                <text class="text-gray-700">{{ gameInfo.rating }}</text>
-              </view>
-              <text>{{ gameInfo.downloads }} 次下载</text>
+          </view>
+        </view>
+
+        <view class="flex items-center justify-between px-4 py-3 bg-gray-50/50 rounded-2xl border border-gray-50">
+          <view class="flex-1 flex flex-col items-center justify-center border-r border-gray-200/50">
+            <view class="flex items-baseline gap-1 mb-1">
+              <text class="text-lg font-black text-gray-900">{{ gameInfo.rating }}</text>
+              <view class="i-lucide-star text-[10px] text-amber-500 fill-current mb-0.5"></view>
             </view>
+            <text class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">评分</text>
+          </view>
+          
+          <view class="flex-1 flex flex-col items-center justify-center border-r border-gray-200/50">
+            <text class="text-lg font-black text-gray-900 mb-1">{{ gameInfo.downloads }}</text>
+            <text class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">下载</text>
+          </view>
+          
+          <view class="flex-1 flex flex-col items-center justify-center">
+            <text class="text-lg font-black text-gray-900 mb-1">256MB</text>
+            <text class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">大小</text>
           </view>
         </view>
       </view>
@@ -93,7 +106,7 @@
 import { ref } from 'vue'
 import { onLoad, onNavigationBarButtonTap, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
 import { getGameDetailApi } from '@/api/game'
-import { claimGiftApi, checkFavoriteApi, toggleFavoriteApi } from '@/api/user'
+import { claimGiftApi, checkFavoriteApi, toggleFavoriteApi, addFootprintApi } from '@/api/user'
 
 const loading = ref(true)
 const gameInfo = ref<any>({})
@@ -121,6 +134,13 @@ const fetchGameDetail = async (id: string) => {
       screenshots.value = typeof res.screenshots === 'string' ? JSON.parse(res.screenshots) : res.screenshots
     }
     await fetchUserStatus(res.id)
+    
+    // 追加：静默记录足迹埋点
+    const userInfoStr = uni.getStorageSync('user_info')
+    if (userInfoStr) {
+       addFootprintApi({ user_id: JSON.parse(userInfoStr).id, game_id: res.id })
+    }
+    
   } catch (error) {
     uni.showToast({ title: '获取数据失败', icon: 'none' })
   } finally {
