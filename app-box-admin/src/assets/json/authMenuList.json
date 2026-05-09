@@ -813,11 +813,11 @@
       ]
     },
     {
-      "path": "/game",
-      "name": "game",
+      "path": "/game/index",
+      "name": "GameIndex",
       "component": "/game/index",
       "meta": {
-        "icon": "Gamepad",
+        "icon": "Trophy",
         "title": "游戏管理",
         "isLink": "",
         "isHide": false,
