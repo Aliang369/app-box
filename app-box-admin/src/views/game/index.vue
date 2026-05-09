@@ -116,7 +116,10 @@ const getTableList = async (params: any) => {
     }));
 
     return {
-      list, pageNum: 1, pageSize: 10, total: list.length
+      list,
+      pageNum: 1,
+      pageSize: 10,
+      total: list.length
     };
   } catch (error) {
     return { list: [], total: 0 };
