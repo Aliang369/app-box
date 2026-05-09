@@ -1,10 +1,24 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./config/db');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const JWT_SECRET = 'appbox_super_secret_key_2024';
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// --- 自动初始化用户表 (省去手动在数据库建表) ---
+db.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    avatar VARCHAR(255) DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`).catch(console.error);
 
 app.get('/api/banners', async (req, res) => {
   try {
@@ -173,6 +187,66 @@ app.delete('/api/banners/:id', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ code: 500, message: '删除失败' });
+  }
+});
+
+// --- 用户登录与注册 API ---
+// 11. 账号密码登录 (如果账号不存在，则自动为其注册)
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ code: 400, message: '账号和密码不能为空' });
+  }
+
+  // 可爱动物头像数组
+  const animalAvatars = [
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Panda',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Bear',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Fox',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Cat',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Dog',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Rabbit',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Owl',
+    'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Penguin'
+  ];
+
+  try {
+    // 查找用户
+    const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    let user = rows[0];
+
+    if (!user) {
+      // 走自动注册逻辑
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // 从数组中随机选择一个头像
+      const randomAvatar = animalAvatars[Math.floor(Math.random() * animalAvatars.length)];
+      const [result] = await db.query(
+        'INSERT INTO users (username, password, avatar) VALUES (?, ?, ?)',
+        [username, hashedPassword, randomAvatar]
+      );
+      user = { id: result.insertId, username, avatar: randomAvatar };
+    } else {
+      // 走登录密码校验逻辑
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.json({ code: 401, message: '密码错误' });
+      }
+    }
+
+    // 登录成功，签发 Token (有效期7天)
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+    
+    res.json({
+      code: 0,
+      message: '登录成功',
+      data: {
+        token,
+        userInfo: { id: user.id, username: user.username, avatar: user.avatar }
+      }
+    });
+  } catch (error) {
+    console.error('Login Error:', error);
+    res.status(500).json({ code: 500, message: '服务器内部错误' });
   }
 });
 

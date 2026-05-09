@@ -1,95 +1,86 @@
 <template>
-  <view class="min-h-screen bg-white px-8 pt-32 pb-10 flex flex-col">
-    <view class="mb-12">
-      <view class="i-lucide-shield-check text-indigo-600 text-5xl mb-6"></view>
-      <text class="text-2xl font-bold text-gray-900 block">欢迎来到 App 盒子</text>
-      <text class="text-sm text-gray-400 mt-2 block">发现属于你的次元羁绊</text>
+  <view class="min-h-screen bg-white px-8 pt-32 pb-10 flex flex-col relative">
+    <view class="absolute top-14 left-6 w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center active:bg-gray-100 transition-all" @click="goBack">
+      <view class="i-lucide-arrow-left text-gray-900 text-lg"></view>
     </view>
 
-    <view class="flex flex-col gap-6">
-      <view class="h-14 border-b border-gray-100 flex items-center">
-        <view class="i-lucide-smartphone text-gray-300 mr-3 text-lg"></view>
-        <input
-          v-model="phone"
-          type="number"
-          placeholder="请输入手机号"
-          placeholder-class="text-gray-200"
-          class="flex-1 text-[15px] text-gray-900"
-        />
+    <view class="mb-14 animate-fade-in-up">
+      <text class="text-4xl font-black text-gray-900 block mb-3 tracking-wider">欢迎回来</text>
+      <text class="text-sm text-gray-400 font-bold">登录或注册以领取专属游戏福利</text>
+    </view>
+
+    <view class="space-y-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+      <view class="bg-gray-50 rounded-2xl p-4 flex items-center border-2 border-transparent focus-within:border-indigo-100 focus-within:bg-white transition-all">
+        <view class="i-lucide-user text-gray-400 text-xl mr-3"></view>
+        <input v-model="form.username" type="text" placeholder="请输入账号 (新账号将自动注册)" class="flex-1 text-gray-900 font-bold placeholder-gray-300 text-sm h-full" />
       </view>
-      <view class="h-14 border-b border-gray-100 flex items-center">
-        <view class="i-lucide-lock text-gray-300 mr-3 text-lg"></view>
-        <input
-          v-model="code"
-          type="number"
-          placeholder="请输入验证码"
-          placeholder-class="text-gray-200"
-          class="flex-1 text-[15px] text-gray-900"
-        />
-        <text class="text-[13px] font-bold text-indigo-600 ml-2" @click="sendCode">获取验证码</text>
+
+      <view class="bg-gray-50 rounded-2xl p-4 flex items-center border-2 border-transparent focus-within:border-indigo-100 focus-within:bg-white transition-all">
+        <view class="i-lucide-lock text-gray-400 text-xl mr-3"></view>
+        <input v-model="form.password" type="password" placeholder="请输入密码" class="flex-1 text-gray-900 font-bold placeholder-gray-300 text-sm h-full" />
       </view>
     </view>
 
-    <button
-      class="mt-12 w-full h-12 bg-indigo-600 text-white rounded-full font-bold text-[15px] active:scale-[0.98] transition-all flex items-center justify-center shadow-lg shadow-indigo-100 m-0"
-      @click="handleLogin"
-    >
-      立即登录
-    </button>
-
-    <view class="flex items-center justify-center mt-6 gap-4">
-      <text class="text-[12px] text-gray-300">其他方式登录</text>
-      <view class="flex gap-4">
-        <view class="i-lucide-wechat text-gray-300 text-xl"></view>
-        <view class="i-lucide-apple text-gray-300 text-xl"></view>
+    <view class="mt-14 animate-fade-in-up" style="animation-delay: 0.2s;">
+      <view class="w-full h-14 bg-indigo-600 rounded-2xl flex items-center justify-center active:scale-[0.98] active:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30" @click="handleLogin">
+        <view v-if="isLoading" class="i-lucide-loader-2 animate-spin text-white text-xl"></view>
+        <text v-else class="text-white font-black text-base tracking-widest">立即出发</text>
       </view>
-    </view>
-
-    <view class="mt-auto text-center">
-      <text class="text-[11px] text-gray-300">登录即代表同意《用户协议》与《隐私政策》</text>
     </view>
     
-    <view class="absolute top-12 left-6" @click="goBack">
-      <view class="i-lucide-chevron-left text-gray-900 text-xl"></view>
+    <view class="mt-auto text-center animate-fade-in-up" style="animation-delay: 0.3s;">
+      <text class="text-xs text-gray-400 font-bold">登录即代表同意用户协议与隐私政策</text>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+import { loginApi } from '@/api/user'
 
-const phone = ref('')
-const code = ref('')
+const isLoading = ref(false)
+const form = reactive({
+  username: '',
+  password: ''
+})
 
-const goBack = () => uni.navigateBack()
-
-const sendCode = () => {
-  if (!phone.value) return uni.showToast({ title: '请输入手机号', icon: 'none' })
-  uni.showToast({ title: '验证码已发送', icon: 'none' })
+const goBack = () => {
+  uni.navigateBack()
 }
 
-const handleLogin = () => {
-  if (!phone.value || !code.value) return uni.showToast({ title: '请填写完整信息', icon: 'none' })
+const handleLogin = async () => {
+  if (!form.username.trim() || !form.password.trim()) {
+    return uni.showToast({ title: '账号或密码不能为空', icon: 'none' })
+  }
   
-  uni.showLoading({ title: '登录中...' })
-  
-  setTimeout(() => {
-    const userInfo = {
-      nickname: '旅行者 A-Liang',
-      avatar: ' `https://picsum.photos/200/200?random=100` ',
-      token: 'mock_token_123456'
-    }
-    uni.setStorageSync('user_info', JSON.stringify(userInfo))
-    uni.hideLoading()
-    uni.showToast({ title: '登录成功' })
+  isLoading.value = true
+  try {
+    const res: any = await loginApi(form)
+    uni.setStorageSync('user_info', JSON.stringify({
+      token: res.token,
+      ...res.userInfo
+    }))
+    
+    uni.showToast({ title: '登录成功', icon: 'success' })
     
     setTimeout(() => {
+      uni.$emit('login_success')
       uni.navigateBack()
-    }, 500)
-  }, 1000)
+    }, 1000)
+  } catch (error) {
+    // 错误已经在 request.ts 拦截器里提示过了
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
 <style scoped>
-button::after { border: none; }
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>
