@@ -1,136 +1,54 @@
 <template>
-  <div class="app-container">
-    <div class="filter-container">
-      <el-input
-        v-model="searchText"
-        placeholder="搜索用户名或游戏名称"
-        class="filter-input"
-        @keyup.enter="fetchList"
-      >
-        <template #append>
-          <el-button @click="fetchList">搜索</el-button>
-        </template>
-      </el-input>
-    </div>
-    <el-table v-loading="loading" :data="recordList" border style="width: 100%">
-      <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column label="用户头像" width="100" align="center">
-        <template #default="scope">
-          <img
-            :src="scope.row.avatar"
-            class="avatar"
-            alt="头像"
-            onerror="this.src='https://api.dicebear.com/7.x/bottts-neutral/svg?seed=default'"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column prop="username" label="用户名" min-width="120" />
-      <el-table-column prop="title" label="游戏名称" min-width="150" />
-      <el-table-column prop="gift_code" label="激活码" min-width="180">
-        <template #default="scope">
-          <code class="code">{{ scope.row.gift_code }}</code>
-        </template>
-      </el-table-column>
-      <el-table-column prop="created_at" label="领取时间" width="200">
-        <template #default="scope">
-          {{ formatDate(scope.row.created_at) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="100" align="center">
-        <template #default="scope">
-          <el-button size="small" type="success" @click="copyCode(scope.row.gift_code)">
-            复制
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+  <div class="table-box">
+    <ProTable ref="proTable" :columns="columns" :request-api="getTableList" :init-param="initParam" :tool-button="false">
+      <template #gift_code="scope">
+        <el-tag type="success" effect="plain" class="font-mono font-bold">{{ scope.row.gift_code }}</el-tag>
+      </template>
+    </ProTable>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ref, reactive } from "vue";
+import ProTable from "@/components/ProTable/index.vue";
+import { ColumnProps } from "@/components/ProTable/interface";
 
-const loading = ref(false);
-const searchText = ref("");
-const recordList = ref<any[]>([]);
+const proTable = ref();
+const initParam = reactive({});
 
-const BASE_URL = "http://localhost:3000";
-
-const fetchList = async () => {
-  loading.value = true;
+// 获取领取记录列表
+const getTableList = async (params: any) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/gift-records`);
-    const data = await res.json();
-    if (data.code === 0) {
-      recordList.value = data.data.filter((item: any) => {
-        if (!searchText.value) return true;
-        return (
-          item.username.includes(searchText.value) ||
-          item.title.includes(searchText.value)
-        );
-      });
+    const res = await fetch("http://localhost:3000/api/admin/gift-records").then(r => r.json());
+    let list = res.data || [];
+    
+    // 前端模拟按用户名或激活码搜索（等后端支持后可直接传 params）
+    if (params.username) {
+      list = list.filter((item: any) => item.username && item.username.includes(params.username));
     }
+    if (params.gift_code) {
+      list = list.filter((item: any) => item.gift_code && item.gift_code.includes(params.gift_code));
+    }
+    
+    return {
+      data: {
+        list: list,
+        pageNum: 1,
+        pageSize: 10,
+        total: list.length
+      }
+    };
   } catch (error) {
-    console.error("获取领取记录失败:", error);
-  } finally {
-    loading.value = false;
+    return { data: { list: [], total: 0 } };
   }
 };
 
-const copyCode = async (code: string) => {
-  try {
-    await navigator.clipboard.writeText(code);
-    ElMessage.success("复制成功");
-  } catch (error) {
-    ElMessage.error("复制失败");
-  }
-};
-
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-};
-
-onMounted(() => {
-  fetchList();
-});
+// 定义超级表格的列配置
+const columns = reactive<ColumnProps[]>([
+  { type: "index", label: "#", width: 80 },
+  { prop: "username", label: "领取用户", width: 150, search: { el: "input", tooltip: "输入用户名搜索" } },
+  { prop: "title", label: "领取的游戏名称", minWidth: 150 },
+  { prop: "gift_code", label: "激活码", width: 200, search: { el: "input" } },
+  { prop: "created_at", label: "领取时间", width: 180 }
+]);
 </script>
-
-<style scoped>
-.app-container {
-  padding: 20px;
-}
-
-.filter-container {
-  margin-bottom: 20px;
-}
-
-.filter-input {
-  width: 350px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.code {
-  background: #f5f5f5;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #6366f1;
-  font-family: monospace;
-}
-</style>

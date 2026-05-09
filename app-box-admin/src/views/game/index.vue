@@ -1,38 +1,29 @@
 <template>
-  <div class="p-6 bg-white rounded-lg shadow-sm m-4">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold text-gray-800">游戏内容管理</h2>
-      <el-button type="primary" @click="openAddDialog"> + 新增游戏 </el-button>
-    </div>
+  <div class="table-box">
+    <ProTable ref="proTable" :columns="columns" :request-api="getTableList" :init-param="initParam" :tool-button="true">
+      <template #tableHeader>
+        <el-button type="primary" icon="Plus" @click="openAddDialog">新增游戏</el-button>
+      </template>
 
-    <el-table :data="tableData" style="width: 100%" border v-loading="loading">
-      <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column label="封面" width="100" align="center">
-        <template #default="scope">
-          <el-image :src="scope.row.cover" class="w-12 h-12 rounded-md" fit="cover" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="title" label="游戏名称" width="180" />
-      <el-table-column prop="tag" label="标签" width="100">
-        <template #default="scope">
-          <el-tag size="small">{{ scope.row.tag }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="rating" label="评分" width="80" align="center" />
-      <el-table-column prop="downloads" label="下载" width="100" />
-      <el-table-column label="操作" fixed="right" min-width="150">
-        <template #default="scope">
-          <el-button type="primary" size="small" link @click="handleEdit(scope.row)">编辑</el-button>
-          <el-popconfirm title="确定要删除这个游戏吗？" @confirm="handleDelete(scope.row.id)">
-            <template #reference>
-              <el-button type="danger" size="small" link>删除</el-button>
-            </template>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+      <template #cover="scope">
+        <el-image :src="scope.row.cover" style="width: 50px; height: 50px; border-radius: 8px" fit="cover" />
+      </template>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px">
+      <template #tag="scope">
+        <el-tag size="small" effect="plain">{{ scope.row.tag }}</el-tag>
+      </template>
+
+      <template #operation="scope">
+        <el-button type="primary" link size="small" icon="EditPen" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-popconfirm title="确定要彻底删除这个游戏吗？" @confirm="handleDelete(scope.row.id)">
+          <template #reference>
+            <el-button type="danger" link size="small" icon="Delete">删除</el-button>
+          </template>
+        </el-popconfirm>
+      </template>
+    </ProTable>
+
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px" destroy-on-close>
       <el-form :model="formData" label-width="100px">
         <el-form-item label="游戏名称">
           <el-input v-model="formData.title" placeholder="如：元气骑士" />
@@ -76,19 +67,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, reactive, computed } from "vue";
 import { ElMessage } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
+import ProTable from "@/components/ProTable/index.vue";
+import { ColumnProps } from "@/components/ProTable/interface";
 
 const BASE_URL = "http://localhost:3000";
-const tableData = ref([]);
-const loading = ref(false);
+
+const proTable = ref();
+const initParam = reactive({});
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
 const isEdit = ref(false);
 const currentId = ref<number | null>(null);
 
-const dialogTitle = computed(() => (isEdit.value ? "编辑游戏" : "新增游戏"));
+const dialogTitle = computed(() => (isEdit.value ? "编辑游戏信息" : "新增游戏"));
 
 const formData = ref({
   title: "",
@@ -100,40 +94,46 @@ const formData = ref({
   screenshots: [] as string[]
 });
 
-const fetchList = async () => {
-  loading.value = true;
+// ProTable 数据请求
+const getTableList = async (params: any) => {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/games`).then(r => r.json());
-    if (res.code === 0) {
-      tableData.value = res.data.map((item: any) => ({
-        ...item,
-        screenshots: item.screenshots
-          ? typeof item.screenshots === "string"
-            ? JSON.parse(item.screenshots)
-            : item.screenshots
-          : []
-      }));
+    let list = res.data || [];
+    
+    // 前端模拟按游戏名称搜索
+    if (params.title) {
+      list = list.filter((item: any) => item.title.includes(params.title));
     }
+    
+    // 解析 JSON 截图数据
+    list = list.map((item: any) => ({
+      ...item,
+      screenshots: item.screenshots ? (typeof item.screenshots === "string" ? JSON.parse(item.screenshots) : item.screenshots) : []
+    }));
+
+    return {
+      data: { list, pageNum: 1, pageSize: 10, total: list.length }
+    };
   } catch (error) {
-    ElMessage.error("获取列表失败");
+    return { data: { list: [], total: 0 } };
   }
-  loading.value = false;
 };
 
-onMounted(fetchList);
+// ProTable 列配置
+const columns = reactive<ColumnProps[]>([
+  { type: "index", label: "#", width: 80 },
+  { prop: "cover", label: "封面", width: 100 },
+  { prop: "title", label: "游戏名称", width: 180, search: { el: "input", tooltip: "输入游戏名称搜索" } },
+  { prop: "tag", label: "标签", width: 100 },
+  { prop: "rating", label: "评分", width: 100 },
+  { prop: "downloads", label: "下载量", width: 120 },
+  { prop: "operation", label: "操作", fixed: "right", width: 180 }
+]);
 
 const openAddDialog = () => {
   isEdit.value = false;
   currentId.value = null;
-  formData.value = {
-    title: "",
-    cover: "",
-    tag: "动作",
-    short_desc: "",
-    rating: 5.0,
-    downloads: "1w+",
-    screenshots: []
-  };
+  formData.value = { title: "", cover: "", tag: "动作", short_desc: "", rating: 5.0, downloads: "1w+", screenshots: [] };
   dialogVisible.value = true;
 };
 
@@ -160,7 +160,7 @@ const submitForm = async () => {
     if (res.code === 0) {
       ElMessage.success(isEdit.value ? "修改成功" : "添加成功");
       dialogVisible.value = false;
-      fetchList();
+      proTable.value?.getTableList(); // 刷新表格
     }
   } catch (error) {
     ElMessage.error("操作失败");
@@ -173,7 +173,7 @@ const handleDelete = async (id: number) => {
     const res = await fetch(`${BASE_URL}/api/games/${id}`, { method: "DELETE" }).then(r => r.json());
     if (res.code === 0) {
       ElMessage.success("删除成功");
-      fetchList();
+      proTable.value?.getTableList(); // 刷新表格
     }
   } catch (error) {
     ElMessage.error("删除失败");

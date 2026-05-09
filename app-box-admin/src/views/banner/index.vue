@@ -1,38 +1,31 @@
 <template>
-  <div class="p-6 bg-white rounded-lg shadow-sm m-4">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold text-gray-800">首页轮播图管理</h2>
-      <el-button type="primary" @click="openAddDialog"> + 新增轮播图 </el-button>
-    </div>
+  <div class="table-box">
+    <ProTable ref="proTable" :columns="columns" :request-api="getTableList" :init-param="initParam" :tool-button="true">
+      <template #tableHeader>
+        <el-button type="primary" icon="Plus" @click="openAddDialog">新增轮播图</el-button>
+      </template>
 
-    <el-table :data="tableData" style="width: 100%" border v-loading="loading">
-      <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column label="轮播图片" min-width="300" align="center">
-        <template #default="scope">
-          <el-image :src="scope.row.image_url" class="h-28 rounded-md w-[80%] object-cover" fit="cover" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="game_id" label="关联游戏ID" width="120" align="center" />
-      <el-table-column prop="sort_order" label="排序权重" width="100" align="center" />
-      <el-table-column label="操作" fixed="right" width="150" align="center">
-        <template #default="scope">
-          <el-button type="primary" size="small" link @click="handleEdit(scope.row)">编辑</el-button>
-          <el-popconfirm title="确定要删除这张轮播图吗？" @confirm="handleDelete(scope.row.id)">
-            <template #reference>
-              <el-button type="danger" size="small" link>删除</el-button>
-            </template>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+      <template #image_url="scope">
+        <el-image :src="scope.row.image_url" class="h-24 w-full rounded-md object-cover" fit="cover" />
+      </template>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+      <template #operation="scope">
+        <el-button type="primary" link size="small" icon="EditPen" @click="handleEdit(scope.row)">编辑</el-button>
+        <el-popconfirm title="确定要删除这张轮播图吗？" @confirm="handleDelete(scope.row.id)">
+          <template #reference>
+            <el-button type="danger" link size="small" icon="Delete">删除</el-button>
+          </template>
+        </el-popconfirm>
+      </template>
+    </ProTable>
+
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" destroy-on-close>
       <el-form :model="formData" label-width="100px">
         <el-form-item label="图片URL">
-          <el-input v-model="formData.image_url" placeholder="建议填入1080x750比例的图片" />
+          <el-input v-model="formData.image_url" placeholder="建议填入横版高清图片链接" />
         </el-form-item>
         <el-form-item label="关联游戏ID">
-          <el-input v-model="formData.game_id" placeholder="填入ID用于点击跳转(非必填)" />
+          <el-input v-model="formData.game_id" placeholder="点击将跳转到该ID的游戏" />
         </el-form-item>
         <el-form-item label="排序权重">
           <el-input-number v-model="formData.sort_order" :min="0" :max="100" />
@@ -42,9 +35,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm" :loading="submitLoading">
-            {{ isEdit ? "确定修改" : "确定添加" }}
-          </el-button>
+          <el-button type="primary" @click="submitForm" :loading="submitLoading">确定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -52,13 +43,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, reactive, computed } from "vue";
 import { ElMessage } from "element-plus";
+import ProTable from "@/components/ProTable/index.vue";
+import { ColumnProps } from "@/components/ProTable/interface";
 
 const BASE_URL = "http://localhost:3000";
 
-const tableData = ref([]);
-const loading = ref(false);
+const proTable = ref();
+const initParam = reactive({});
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
 const isEdit = ref(false);
@@ -72,31 +65,36 @@ const formData = ref({
   sort_order: 0
 });
 
-const fetchList = async () => {
-  loading.value = true;
+const getTableList = async (params: any) => {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/banners`).then(r => r.json());
-    if (res.code === 0) {
-      tableData.value = res.data;
+    let list = res.data || [];
+    
+    // 按关联游戏 ID 搜索
+    if (params.game_id) {
+      list = list.filter((item: any) => String(item.game_id).includes(String(params.game_id)));
     }
+    
+    return {
+      data: { list, pageNum: 1, pageSize: 10, total: list.length }
+    };
   } catch (error) {
-    ElMessage.error("获取列表失败");
+    return { data: { list: [], total: 0 } };
   }
-  loading.value = false;
 };
 
-onMounted(() => {
-  fetchList();
-});
+const columns = reactive<ColumnProps[]>([
+  { type: "index", label: "#", width: 80 },
+  { prop: "image_url", label: "轮播图片展示", minWidth: 300 },
+  { prop: "game_id", label: "关联游戏ID", width: 150, search: { el: "input", tooltip: "输入游戏ID查找" } },
+  { prop: "sort_order", label: "排序权重", width: 120 },
+  { prop: "operation", label: "操作", fixed: "right", width: 180 }
+]);
 
 const openAddDialog = () => {
   isEdit.value = false;
   currentId.value = null;
-  formData.value = {
-    image_url: "",
-    game_id: "",
-    sort_order: 0
-  };
+  formData.value = { image_url: "", game_id: "", sort_order: 0 };
   dialogVisible.value = true;
 };
 
@@ -108,10 +106,7 @@ const handleEdit = (row: any) => {
 };
 
 const submitForm = async () => {
-  if (!formData.value.image_url) {
-    return ElMessage.warning("图片URL不能为空");
-  }
-
+  if (!formData.value.image_url) return ElMessage.warning("图片URL不能为空");
   submitLoading.value = true;
   const url = isEdit.value ? `${BASE_URL}/api/banners/${currentId.value}` : `${BASE_URL}/api/banners`;
   const method = isEdit.value ? "PUT" : "POST";
@@ -126,7 +121,7 @@ const submitForm = async () => {
     if (res.code === 0) {
       ElMessage.success(isEdit.value ? "修改成功" : "添加成功");
       dialogVisible.value = false;
-      fetchList();
+      proTable.value?.getTableList(); // 刷新表格
     } else {
       ElMessage.error(res.message);
     }
@@ -138,13 +133,10 @@ const submitForm = async () => {
 
 const handleDelete = async (id: number) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/banners/${id}`, {
-      method: "DELETE"
-    }).then(r => r.json());
-
+    const res = await fetch(`${BASE_URL}/api/banners/${id}`, { method: "DELETE" }).then(r => r.json());
     if (res.code === 0) {
       ElMessage.success("删除成功");
-      fetchList();
+      proTable.value?.getTableList(); // 刷新表格
     }
   } catch (error) {
     ElMessage.error("删除失败");

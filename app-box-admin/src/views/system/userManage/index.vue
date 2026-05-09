@@ -1,106 +1,52 @@
 <template>
-  <div class="app-container">
-    <div class="filter-container">
-      <el-input
-        v-model="searchText"
-        placeholder="搜索用户名"
-        class="filter-input"
-        @keyup.enter="fetchList"
-      >
-        <template #append>
-          <el-button @click="fetchList">搜索</el-button>
-        </template>
-      </el-input>
-    </div>
-    <el-table v-loading="loading" :data="userList" border style="width: 100%">
-      <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column prop="username" label="用户名" min-width="120" />
-      <el-table-column label="头像" width="120" align="center">
-        <template #default="scope">
-          <img
-            :src="scope.row.avatar"
-            class="avatar"
-            alt="头像"
-            onerror="this.src='https://api.dicebear.com/7.x/bottts-neutral/svg?seed=default'"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column prop="created_at" label="注册时间" width="200">
-        <template #default="scope">
-          {{ formatDate(scope.row.created_at) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="120" align="center">
-        <template #default="scope">
-          <el-button size="small" type="primary" plain>查看</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+  <div class="table-box">
+    <ProTable ref="proTable" :columns="columns" :request-api="getTableList" :init-param="initParam" :tool-button="false">
+      <template #avatar="scope">
+        <el-avatar :size="40" :src="scope.row.avatar" />
+      </template>
+    </ProTable>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, reactive } from "vue";
+import ProTable from "@/components/ProTable/index.vue";
+import { ColumnProps } from "@/components/ProTable/interface";
 
-const loading = ref(false);
-const searchText = ref("");
-const userList = ref<any[]>([]);
+const proTable = ref();
+const initParam = reactive({});
 
-const BASE_URL = "http://localhost:3000";
-
-const fetchList = async () => {
-  loading.value = true;
+// 适配 ProTable 的请求函数
+const getTableList = async (params: any) => {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/users`);
-    const data = await res.json();
-    if (data.code === 0) {
-      userList.value = data.data.filter((item: any) => {
-        if (!searchText.value) return true;
-        return item.username.includes(searchText.value);
-      });
+    const res = await fetch("http://localhost:3000/api/admin/users").then(r => r.json());
+    let list = res.data || [];
+    
+    // 前端模拟搜索（等后端有真实查询接口可去掉）
+    if (params.username) {
+      list = list.filter((item: any) => item.username.includes(params.username));
     }
+    
+    // ProTable 需要特定的返回结构
+    return {
+      data: {
+        list: list,
+        pageNum: 1,
+        pageSize: 10,
+        total: list.length
+      }
+    };
   } catch (error) {
-    console.error("获取用户列表失败:", error);
-  } finally {
-    loading.value = false;
+    return { data: { list: [], total: 0 } };
   }
 };
 
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  return date.toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-};
-
-onMounted(() => {
-  fetchList();
-});
+// 定义超级表格的列配置
+const columns = reactive<ColumnProps[]>([
+  { type: "index", label: "#", width: 80 },
+  { prop: "id", label: "正式玩家ID", width: 120 },
+  { prop: "username", label: "用户名", search: { el: "input", tooltip: "输入用户名搜索" } },
+  { prop: "avatar", label: "专属萌宠头像", width: 120 },
+  { prop: "created_at", label: "注册时间" }
+]);
 </script>
-
-<style scoped>
-.app-container {
-  padding: 20px;
-}
-
-.filter-container {
-  margin-bottom: 20px;
-}
-
-.filter-input {
-  width: 300px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-</style>
