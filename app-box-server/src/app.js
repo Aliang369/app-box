@@ -43,6 +43,17 @@ db.query(`
   )
 `).catch(console.error);
 
+// --- 自动初始化收藏表 ---
+db.query(`
+  CREATE TABLE IF NOT EXISTS user_favorites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    game_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_game (user_id, game_id)
+  )
+`).catch(console.error);
+
 app.get('/api/banners', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM banners ORDER BY sort_order DESC LIMIT 5');
@@ -361,6 +372,40 @@ app.get('/api/gifts/config', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ code: 500, message: '查询失败' });
+  }
+});
+
+// --- 用户收藏 API ---
+
+// 切换收藏状态
+app.post('/api/favorites/toggle', async (req, res) => {
+  const { user_id, game_id } = req.body;
+  if (!user_id || !game_id) return res.status(400).json({ code: 400, message: '参数缺失' });
+
+  try {
+    const [rows] = await db.query('SELECT * FROM user_favorites WHERE user_id = ? AND game_id = ?', [user_id, game_id]);
+    if (rows.length > 0) {
+      await db.query('DELETE FROM user_favorites WHERE user_id = ? AND game_id = ?', [user_id, game_id]);
+      res.json({ code: 0, message: '已取消收藏', data: { isFavorited: false } });
+    } else {
+      await db.query('INSERT INTO user_favorites (user_id, game_id) VALUES (?, ?)', [user_id, game_id]);
+      res.json({ code: 0, message: '收藏成功', data: { isFavorited: true } });
+    }
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '操作失败' });
+  }
+});
+
+// 检查是否已收藏
+app.get('/api/favorites/check', async (req, res) => {
+  const { user_id, game_id } = req.query;
+  if (!user_id || !game_id) return res.json({ code: 0, data: { isFavorited: false } });
+
+  try {
+    const [rows] = await db.query('SELECT * FROM user_favorites WHERE user_id = ? AND game_id = ?', [user_id, game_id]);
+    res.json({ code: 0, data: { isFavorited: rows.length > 0 } });
+  } catch (error) {
+    res.json({ code: 0, data: { isFavorited: false } });
   }
 });
 

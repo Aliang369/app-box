@@ -1,12 +1,40 @@
 <template>
   <view class="min-h-screen bg-white pb-24">
-    <view class="fixed top-0 left-0 right-0 z-50 px-4 pt-12 pb-3 flex justify-between items-center bg-white/80 backdrop-blur-md">
-      <view class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center active:bg-gray-100" @click="goBack">
-        <view class="i-lucide-chevron-left text-gray-900"></view>
-      </view>
-      <view class="flex gap-4">
-        <view class="i-lucide-share-2 text-gray-900 text-lg"></view>
-        <view class="i-lucide-heart text-gray-900 text-lg"></view>
+    <view
+      class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-end pb-2 px-4"
+      :style="{
+        height: navBarHeight + 'px',
+        backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+        backdropFilter: isScrolled ? 'blur(10px)' : 'none',
+        borderBottom: isScrolled ? '1px solid #f3f4f6' : '1px solid transparent'
+      }"
+    >
+      <view class="flex items-center justify-between w-full">
+        <view
+          class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95"
+          :class="isScrolled ? 'bg-gray-100' : 'bg-black/30 backdrop-blur-md'"
+          @click="goBack"
+        >
+          <view class="i-lucide-chevron-left text-xl" :class="isScrolled ? 'text-gray-900' : 'text-white'"></view>
+        </view>
+        
+        <view class="flex items-center gap-3">
+          <view
+            class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95"
+            :class="isScrolled ? 'bg-gray-100' : 'bg-black/30 backdrop-blur-md'"
+            @click="handleFavorite"
+          >
+            <view class="text-lg transition-colors" :class="[isFavorited ? 'i-lucide-heart text-red-500 fill-current' : (isScrolled ? 'i-lucide-heart text-gray-900' : 'i-lucide-heart text-white')]"></view>
+          </view>
+          <button
+            open-type="share"
+            class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95 m-0 p-0 border-none bg-transparent after:hidden"
+            :class="isScrolled ? 'bg-gray-100' : 'bg-black/30 backdrop-blur-md'"
+            @click="handleShare"
+          >
+            <view class="i-lucide-share-2 text-lg" :class="isScrolled ? 'text-gray-900' : 'text-white'"></view>
+          </button>
+        </view>
       </view>
     </view>
 
@@ -118,14 +146,37 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onPageScroll, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
 import { getGameDetail } from '@/api/game'
-import { claimGiftApi, checkGiftStatusApi, getGiftConfigApi } from '@/api/user'
+import { claimGiftApi, checkGiftStatusApi, getGiftConfigApi, toggleFavoriteApi, checkFavoriteApi } from '@/api/user'
 
 const isLoading = ref(true)
 const gameInfo = ref<any>({})
 const hasClaimed = ref(false)
 const giftConfig = ref({ gift_name: '新手启航礼包', gift_desc: '包含海量金币与限定道具' })
+
+// 状态栏高度计算
+const systemInfo = uni.getSystemInfoSync()
+const navBarHeight = ref((systemInfo.statusBarHeight || 20) + 44)
+
+// 滚动变色逻辑
+const isScrolled = ref(false)
+onPageScroll((e) => {
+  isScrolled.value = e.scrollTop > 50
+})
+
+// 收藏逻辑
+const isFavorited = ref(false)
+
+// 检查收藏状态
+const checkFavoriteStatus = async (gameId: number) => {
+  const userInfoStr = uni.getStorageSync('user_info')
+  if (userInfoStr) {
+    const user = JSON.parse(userInfoStr)
+    const res: any = await checkFavoriteApi(user.id, gameId)
+    isFavorited.value = res.isFavorited
+  }
+}
 
 // 计算截图数组（兼容数据库存 JSON 字符串或空的情况）
 const screenshots = computed(() => {
@@ -226,6 +277,9 @@ onLoad(async (options: any) => {
         const isClaimed = await checkGiftStatus(userId, options.id)
         hasClaimed.value = isClaimed
       }
+      
+      // 4. 检查收藏状态
+      await checkFavoriteStatus(gameInfo.value.id)
     } catch (e) {
       uni.showToast({ title: '加载失败', icon: 'none' })
     } finally {
@@ -251,6 +305,47 @@ const handleDownload = () => {
     uni.showToast({ title: '由于是演示版本，暂不支持真实下载', icon: 'none' })
   }, 1500)
 }
+
+const handleFavorite = async () => {
+  const userInfoStr = uni.getStorageSync('user_info')
+  if (!userInfoStr) {
+    uni.showToast({ title: '请先登录', icon: 'none' })
+    setTimeout(() => uni.navigateTo({ url: '/pages/login/index' }), 1000)
+    return
+  }
+  const user = JSON.parse(userInfoStr)
+  try {
+    const res: any = await toggleFavoriteApi({ user_id: user.id, game_id: gameInfo.value.id })
+    isFavorited.value = res.isFavorited
+    uni.showToast({ title: res.message, icon: 'none' })
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+// 分享逻辑
+const handleShare = () => {
+  // 兼容 H5 点击分享提示
+  // #ifdef H5
+  uni.showToast({ title: '请点击浏览器右上角菜单进行分享', icon: 'none' })
+  // #endif
+}
+
+// 微信小程序原生分享
+onShareAppMessage(() => {
+  return {
+    title: `推荐给你一款超棒的游戏：${gameInfo.value.title}`,
+    path: `/pages/detail/index?id=${gameInfo.value.id}`,
+    imageUrl: gameInfo.value.cover
+  }
+})
+onShareTimeline(() => {
+  return {
+    title: `我在盒子发现了一款神作：${gameInfo.value.title}`,
+    query: `id=${gameInfo.value.id}`,
+    imageUrl: gameInfo.value.cover
+  }
+})
 </script>
 
 <style scoped>

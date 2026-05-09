@@ -41,3 +41,13 @@ export const getGiftConfigApi = (game_id: number | string) => {
     method: 'GET'
   })
 }
+
+// 切换收藏状态
+export const toggleFavoriteApi = (data: { user_id: number; game_id: number | string }) => {
+  return request({ url: '/api/favorites/toggle', method: 'POST', data })
+}
+
+// 检查是否收藏
+export const checkFavoriteApi = (user_id: number, game_id: number | string) => {
+  return request({ url: `/api/favorites/check?user_id=${user_id}&game_id=${game_id}`, method: 'GET' })
+}
