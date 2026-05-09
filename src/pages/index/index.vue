@@ -1,6 +1,6 @@
 <template>
   <view class="min-h-screen pb-32 bg-[#F9FAFB]">
-    
+
     <view class="sticky top-0 z-30 pt-3 pb-2 px-5 bg-white/80 backdrop-blur-xl border-b border-gray-100 relative" @click="goToSearch">
       <view class="absolute inset-0 z-40"></view>
       <view class="h-10 bg-gray-50 border border-gray-100 rounded-full flex items-center px-4 transition-all active:scale-[0.98]">
@@ -12,14 +12,14 @@
     <view class="px-5 mt-4">
       <view class="rounded-2xl overflow-hidden border border-gray-100 bg-white">
         <view v-if="isFirstLoading" class="w-full bg-gray-100 animate-pulse" style="height: 465rpx;"></view>
-        <wd-swiper 
+        <wd-swiper
           v-else
-          :list="bannerList" 
-          autoplay 
+          :list="bannerList"
+          autoplay
           :interval="4000"
           image-mode="aspectFill"
           indicator-active-color="#4F46E5"
-          height="465rpx" 
+          height="465rpx"
         ></wd-swiper>
       </view>
     </view>
@@ -33,11 +33,11 @@
       </view>
 
       <view v-else class="flex justify-between items-center bg-white rounded-2xl p-2 border border-gray-100 shadow-sm">
-        <view 
-          v-for="(nav, index) in navList" 
-          :key="index" 
-          class="flex flex-col items-center justify-center w-[22%] py-2 rounded-xl active:bg-gray-50 transition-colors" 
-          @click="handleNavClick(nav)" 
+        <view
+          v-for="(nav, index) in navList"
+          :key="index"
+          class="flex flex-col items-center justify-center w-[22%] py-2 rounded-xl active:bg-gray-50 transition-colors"
+          @click="handleNavClick(nav)"
         >
           <view :class="['text-[22px] mb-1.5 text-indigo-500', nav.icon]"></view>
           <text class="text-[12px] font-medium text-gray-600 tracking-tight">{{ nav.name }}</text>
@@ -72,9 +72,9 @@
       </view>
 
       <view v-else class="flex flex-col gap-3">
-        <view 
-          v-for="(game, index) in gameList" 
-          :key="game.id" 
+        <view
+          v-for="(game, index) in gameList"
+          :key="game.id"
           class="bg-white border border-gray-100 rounded-2xl p-3 flex shadow-sm active:bg-gray-50 transition-all duration-300 animate-fade-in"
           @click="goToGameDetail(game)"
         >
@@ -134,33 +134,35 @@ const gameList = ref<any[]>([])
 const page = ref(1)
 const loadingStatus = ref<'loadmore' | 'loading' | 'nomore'>('loadmore')
 const isRefreshing = ref(false)
-const isFirstLoading = ref(true) // 控制骨架屏显示
+const isFirstLoading = ref(true)
 
 const fetchGameListData = async (isRefresh = false) => {
   if (loadingStatus.value === 'loading' || (!isRefresh && loadingStatus.value === 'nomore')) return
-  
+
   loadingStatus.value = 'loading'
-  
+
   try {
     if (isRefresh) {
       const [banners, newData] = await Promise.all([
         getBannerList(),
         getGameList({ page: 1, limit: 5 })
       ])
-      
+
       bannerList.value = banners.map((item: any) => item.image_url)
-      
-      gameList.value = newData
+
+      const data = newData.list || newData
+      gameList.value = data
       uni.stopPullDownRefresh()
       isRefreshing.value = false
-      loadingStatus.value = newData.length < 5 ? 'nomore' : 'loadmore'
+      loadingStatus.value = data.length < 5 ? 'nomore' : 'loadmore'
     } else {
       const newData = await getGameList({ page: page.value, limit: 5 })
-      gameList.value = [...gameList.value, ...newData]
-      
-      loadingStatus.value = newData.length < 5 ? 'nomore' : 'loadmore'
+      const data = newData.list || newData
+      gameList.value = [...gameList.value, ...data]
+
+      loadingStatus.value = data.length < 5 ? 'nomore' : 'loadmore'
     }
-    
+
     isFirstLoading.value = false
   } catch (error) {
     console.error('请求失败:', error)
@@ -196,9 +198,9 @@ const refreshData = () => {
   if (isRefreshing.value || loadingStatus.value === 'loading') return
   uni.vibrateShort({})
   isRefreshing.value = true
-  isFirstLoading.value = true // 换一批时再次显示骨架屏
+  isFirstLoading.value = true
   page.value = 1
-  gameList.value = [] // 清空旧数据
+  gameList.value = []
   fetchGameListData(true)
 }
 

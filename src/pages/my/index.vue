@@ -16,7 +16,7 @@
           </block>
         </view>
       </view>
-      
+
       <view class="flex mt-10">
         <view class="flex-1 text-center active:bg-gray-50 transition-colors py-2 rounded-xl" @click="goTo('/pages/my/favorites')">
           <text class="block text-xl font-black text-gray-900">{{ stats.favCount }}</text>
@@ -34,17 +34,24 @@
     </view>
 
     <view class="px-6 mt-6 space-y-4">
-      <view class="bg-white rounded-3xl p-5 flex items-center gap-4 active:scale-[0.98] transition-all shadow-sm" @click="goTo('/pages/my/gifts')">
-        <view class="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center">
-          <view class="i-lucide-gift text-amber-500"></view>
+      <view class="bg-white rounded-3xl p-5 border border-gray-100 flex items-center justify-between active:scale-[0.98] transition-all shadow-sm shadow-gray-100/50" @click="goTo('/pages/my/gifts')">
+        <view class="flex items-center gap-4">
+          <view class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+            <view class="i-lucide-gift text-amber-500 text-lg"></view>
+          </view>
+          <text class="text-sm font-black text-gray-900 tracking-wider">我的礼包</text>
         </view>
-        <text class="flex-1 text-sm font-bold text-gray-700">我的礼包中心</text>
-        <view class="i-lucide-chevron-right text-gray-300"></view>
+        <view class="flex items-center gap-2">
+          <view v-if="stats.giftCount > 0" class="px-2 py-0.5 bg-red-50 rounded-md">
+            <text class="text-[10px] font-bold text-red-500">{{ stats.giftCount }}</text>
+          </view>
+          <view class="i-lucide-chevron-right text-gray-300"></view>
+        </view>
       </view>
 
       <view v-if="isLogin" class="mt-12 flex justify-center">
-        <view class="px-6 py-3 rounded-full bg-gray-200/50 active:bg-gray-200 transition-all" @click="handleLogout">
-          <text class="text-xs font-bold text-gray-500 tracking-widest">退出当前账号</text>
+        <view class="px-8 py-3 rounded-full bg-gray-50 active:bg-gray-100 transition-all border border-gray-100" @click="handleLogout">
+          <text class="text-xs font-black text-gray-400 tracking-widest uppercase">退出当前账号</text>
         </view>
       </view>
     </view>
