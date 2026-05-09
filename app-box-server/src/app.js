@@ -32,6 +32,17 @@ db.query(`
   )
 `).catch(console.error);
 
+// --- 自动初始化礼包配置表 (管理员设置) ---
+db.query(`
+  CREATE TABLE IF NOT EXISTS gift_configs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    game_id INT NOT NULL UNIQUE,
+    gift_name VARCHAR(100) DEFAULT '新手礼包',
+    gift_desc TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )
+`).catch(console.error);
+
 app.get('/api/banners', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM banners ORDER BY sort_order DESC LIMIT 5');
@@ -307,6 +318,132 @@ app.get('/api/my/gifts', async (req, res) => {
     res.json({ code: 0, message: 'success', data: rows });
   } catch (error) {
     res.status(500).json({ code: 500, message: '获取失败' });
+  }
+});
+
+// --- App 端礼包状态查询 ---
+// 14. 查询用户是否已领取该游戏礼包
+app.get('/api/gifts/check', async (req, res) => {
+  const { user_id, game_id } = req.query;
+  if (!user_id || !game_id) {
+    return res.status(400).json({ code: 400, message: '参数缺失' });
+  }
+
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM user_gifts WHERE user_id = ? AND game_id = ?',
+      [user_id, game_id]
+    );
+    
+    res.json({ code: 0, message: 'success', data: { isClaimed: rows.length > 0 } });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '查询失败' });
+  }
+});
+
+// 15. 获取游戏礼包配置
+app.get('/api/gifts/config', async (req, res) => {
+  const { game_id } = req.query;
+  if (!game_id) {
+    return res.status(400).json({ code: 400, message: '参数缺失' });
+  }
+
+  try {
+    const [rows] = await db.query(
+      'SELECT gift_name, gift_desc FROM gift_configs WHERE game_id = ?',
+      [game_id]
+    );
+    
+    if (rows.length > 0) {
+      res.json({ code: 0, message: 'success', data: rows[0] });
+    } else {
+      res.json({ code: 0, message: 'success', data: { gift_name: '新手启航礼包', gift_desc: '包含海量金币与限定道具' } });
+    }
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '查询失败' });
+  }
+});
+
+// --- 管理端接口 ---
+
+// 16. 获取用户列表
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT id, username, avatar, created_at FROM users ORDER BY id DESC');
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '查询失败' });
+  }
+});
+
+// 17. 获取礼包配置列表
+app.get('/api/admin/gift-configs', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT gc.*, g.title, g.cover 
+      FROM gift_configs gc 
+      RIGHT JOIN games g ON gc.game_id = g.id 
+      ORDER BY g.id ASC
+    `);
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '查询失败' });
+  }
+});
+
+// 18. 保存礼包配置 (新增或更新)
+app.post('/api/admin/gift-configs', async (req, res) => {
+  const { game_id, gift_name, gift_desc } = req.body;
+  if (!game_id) {
+    return res.status(400).json({ code: 400, message: '游戏ID不能为空' });
+  }
+
+  try {
+    const [exists] = await db.query('SELECT id FROM gift_configs WHERE game_id = ?', [game_id]);
+    
+    if (exists.length > 0) {
+      await db.query(
+        'UPDATE gift_configs SET gift_name = ?, gift_desc = ? WHERE game_id = ?',
+        [gift_name || '新手礼包', gift_desc || '', game_id]
+      );
+    } else {
+      await db.query(
+        'INSERT INTO gift_configs (game_id, gift_name, gift_desc) VALUES (?, ?, ?)',
+        [game_id, gift_name || '新手礼包', gift_desc || '']
+      );
+    }
+    
+    res.json({ code: 0, message: '保存成功' });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '保存失败' });
+  }
+});
+
+// 19. 删除礼包配置
+app.delete('/api/admin/gift-configs/:game_id', async (req, res) => {
+  const { game_id } = req.params;
+  
+  try {
+    await db.query('DELETE FROM gift_configs WHERE game_id = ?', [game_id]);
+    res.json({ code: 0, message: '删除成功' });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '删除失败' });
+  }
+});
+
+// 20. 获取领取记录列表
+app.get('/api/admin/gift-records', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT ug.*, u.username, u.avatar, g.title 
+      FROM user_gifts ug 
+      JOIN users u ON ug.user_id = u.id 
+      JOIN games g ON ug.game_id = g.id 
+      ORDER BY ug.created_at DESC
+    `);
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '查询失败' });
   }
 });
 

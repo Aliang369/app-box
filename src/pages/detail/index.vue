@@ -82,8 +82,8 @@
                 <view class="i-lucide-gift text-white text-xl"></view>
               </view>
               <view>
-                <text class="block text-sm font-black text-gray-900 mb-0.5">新手启航礼包</text>
-                <text class="text-[10px] text-gray-500 font-bold">包含海量金币与限定道具</text>
+                <text class="block text-sm font-black text-gray-900 mb-0.5">{{ giftConfig.gift_name }}</text>
+                <text class="text-[10px] text-gray-500 font-bold">{{ giftConfig.gift_desc }}</text>
               </view>
             </view>
             
@@ -120,11 +120,12 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGameDetail } from '@/api/game'
-import { claimGiftApi } from '@/api/user'
+import { claimGiftApi, checkGiftStatusApi, getGiftConfigApi } from '@/api/user'
 
 const isLoading = ref(true)
 const gameInfo = ref<any>({})
 const hasClaimed = ref(false)
+const giftConfig = ref({ gift_name: '新手启航礼包', gift_desc: '包含海量金币与限定道具' })
 
 // 计算截图数组（兼容数据库存 JSON 字符串或空的情况）
 const screenshots = computed(() => {
@@ -137,6 +138,33 @@ const screenshots = computed(() => {
     return []
   }
 })
+
+const fetchGameDetail = async (id: string) => {
+  try {
+    const data = await getGameDetail(id)
+    gameInfo.value = data
+  } catch (e) {
+    uni.showToast({ title: '加载失败', icon: 'none' })
+  }
+}
+
+const checkGiftStatus = async (userId: number, gameId: string) => {
+  try {
+    const res: any = await checkGiftStatusApi(userId, gameId)
+    return res.isClaimed
+  } catch (e) {
+    return false
+  }
+}
+
+const fetchGiftConfig = async (gameId: string) => {
+  try {
+    const res: any = await getGiftConfigApi(gameId)
+    giftConfig.value = res
+  } catch (e) {
+    // 使用默认值
+  }
+}
 
 const handleClaimGift = async () => {
   if (hasClaimed.value) return uni.showToast({ title: '已领过了，请前往我的礼包查看', icon: 'none' })
@@ -185,8 +213,19 @@ const handleClaimGift = async () => {
 onLoad(async (options: any) => {
   if (options.id) {
     try {
-      const data = await getGameDetail(options.id)
-      gameInfo.value = data
+      // 1. 获取游戏详情
+      await fetchGameDetail(options.id)
+      
+      // 2. 获取礼包配置
+      await fetchGiftConfig(options.id)
+      
+      // 3. 预判领取状态
+      const userInfoStr = uni.getStorageSync('user_info')
+      if (userInfoStr) {
+        const { id: userId } = JSON.parse(userInfoStr)
+        const isClaimed = await checkGiftStatus(userId, options.id)
+        hasClaimed.value = isClaimed
+      }
     } catch (e) {
       uni.showToast({ title: '加载失败', icon: 'none' })
     } finally {

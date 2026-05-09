@@ -1053,6 +1053,64 @@
         "isAffix": false,
         "isKeepAlive": true
       }
+    },
+    {
+      "path": "/system/userManage",
+      "name": "userManage",
+      "component": "/system/userManage/index",
+      "meta": {
+        "icon": "User",
+        "title": "用户管理",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": false,
+        "isKeepAlive": true
+      }
+    },
+    {
+      "path": "/gift",
+      "name": "gift",
+      "redirect": "/gift/config",
+      "meta": {
+        "icon": "Gift",
+        "title": "礼包管理",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": false,
+        "isKeepAlive": true
+      },
+      "children": [
+        {
+          "path": "/gift/config",
+          "name": "giftConfig",
+          "component": "/gift/config",
+          "meta": {
+            "icon": "Memo",
+            "title": "礼包内容设置",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
+          "path": "/gift/record",
+          "name": "giftRecord",
+          "component": "/gift/record",
+          "meta": {
+            "icon": "List",
+            "title": "领取记录查询",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        }
+      ]
     }
   ],
   "msg": "成功"

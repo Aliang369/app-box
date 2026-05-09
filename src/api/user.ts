@@ -25,3 +25,19 @@ export const getMyGiftsApi = (user_id: number) => {
     method: 'GET'
   })
 }
+
+// 查询礼包领取状态
+export const checkGiftStatusApi = (user_id: number, game_id: number | string) => {
+  return request({
+    url: `/api/gifts/check?user_id=${user_id}&game_id=${game_id}`,
+    method: 'GET'
+  })
+}
+
+// 获取游戏礼包配置
+export const getGiftConfigApi = (game_id: number | string) => {
+  return request({
+    url: `/api/gifts/config?game_id=${game_id}`,
+    method: 'GET'
+  })
+}
