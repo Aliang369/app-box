@@ -25,7 +25,21 @@
     {
       "path": "pages/detail/index",
       "style": {
-        "navigationBarTitleText": "游戏详情"
+        "navigationBarTitleText": "游戏详情",
+        "navigationBarBackgroundColor": "#ffffff",
+        "navigationBarTextStyle": "black",
+        "app-plus": {
+          "titleNView": {
+            "buttons": [
+              {
+                "text": "\\ue61d",
+                "fontSrc": "/static/iconfont.ttf",
+                "fontSize": "22px",
+                "color": "#333333"
+              }
+            ]
+          }
+        }
       }
     },
     {

@@ -1,309 +1,165 @@
 <template>
-  <view class="min-h-screen bg-white pb-24">
-    <view
-      class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 flex items-end pb-2 px-4"
-      :style="{
-        height: navBarHeight + 'px',
-        backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
-        backdropFilter: isScrolled ? 'blur(10px)' : 'none',
-        borderBottom: isScrolled ? '1px solid #f3f4f6' : '1px solid transparent'
-      }"
-    >
-      <view class="flex items-center justify-between w-full">
-        <view
-          class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95"
-          :class="isScrolled ? 'bg-gray-100' : 'bg-black/30 backdrop-blur-md'"
-          @click="goBack"
-        >
-          <view class="i-lucide-chevron-left text-xl" :class="isScrolled ? 'text-gray-900' : 'text-white'"></view>
-        </view>
-        
-        <view class="flex items-center gap-3">
-          <view
-            class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95"
-            :class="isScrolled ? 'bg-gray-100' : 'bg-black/30 backdrop-blur-md'"
-            @click="handleFavorite"
-          >
-            <view class="text-lg transition-colors" :class="[isFavorited ? 'i-lucide-heart text-red-500 fill-current' : (isScrolled ? 'i-lucide-heart text-gray-900' : 'i-lucide-heart text-white')]"></view>
-          </view>
-          <button
-            open-type="share"
-            class="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95 m-0 p-0 border-none bg-transparent after:hidden"
-            :class="isScrolled ? 'bg-gray-100' : 'bg-black/30 backdrop-blur-md'"
-            @click="handleShare"
-          >
-            <view class="i-lucide-share-2 text-lg" :class="isScrolled ? 'text-gray-900' : 'text-white'"></view>
-          </button>
-        </view>
-      </view>
+  <view class="min-h-screen bg-gray-50 pb-28">
+    <view v-if="loading" class="p-6 space-y-4">
+      <view class="w-full h-32 bg-gray-200 animate-pulse rounded-2xl"></view>
+      <view class="w-2/3 h-8 bg-gray-200 animate-pulse rounded-lg"></view>
+      <view class="w-full h-40 bg-gray-200 animate-pulse rounded-2xl"></view>
     </view>
 
-    <view v-if="isLoading" class="animate-pulse">
-      <view class="w-full h-[500rpx] bg-gray-100"></view>
-      <view class="p-5">
-        <view class="flex gap-4 mb-6">
-          <view class="w-20 h-20 bg-gray-100 rounded-2xl"></view>
-          <view class="flex-1 py-1">
-            <view class="h-6 bg-gray-100 rounded w-3/4 mb-3"></view>
-            <view class="h-4 bg-gray-50 rounded w-1/2"></view>
+    <block v-else>
+      <view class="bg-white px-6 pt-6 pb-8 rounded-b-[40rpx] shadow-sm shadow-gray-100/50">
+        <view class="flex items-start gap-5">
+          <image :src="gameInfo.cover" class="w-24 h-24 rounded-3xl bg-gray-100 shadow-md shadow-gray-200/50 border border-gray-50" mode="aspectFill" />
+          <view class="flex-1 pt-1">
+            <text class="text-xl font-black text-gray-900 block mb-2 leading-tight">{{ gameInfo.title }}</text>
+            <view class="flex flex-wrap gap-2 mb-3">
+              <view class="px-2.5 py-1 bg-gray-50 rounded-md border border-gray-100">
+                <text class="text-[10px] text-gray-500 font-bold">{{ gameInfo.tag }}</text>
+              </view>
+              <view class="px-2.5 py-1 bg-gray-50 rounded-md border border-gray-100 flex items-center gap-1">
+                <view class="i-lucide-star text-[10px] text-amber-500 fill-current"></view>
+                <text class="text-[10px] text-gray-600 font-black">{{ gameInfo.rating }}</text>
+              </view>
+            </view>
+            <text class="text-xs text-gray-400 font-bold">{{ gameInfo.downloads }} 次下载</text>
           </view>
         </view>
-        <view class="h-4 bg-gray-100 rounded w-full mb-2"></view>
-        <view class="h-4 bg-gray-100 rounded w-full mb-2"></view>
-        <view class="h-4 bg-gray-100 rounded w-2/3"></view>
       </view>
-    </view>
 
-    <view v-else class="animate-fade-in">
-      <image :src="gameInfo.cover" class="w-full h-[500rpx] bg-gray-50" mode="aspectFill"></image>
-
-      <view class="px-5 -mt-6 relative z-10">
-        <view class="bg-white rounded-3xl p-5 shadow-xl shadow-gray-100/50 border border-gray-50">
-          <view class="flex gap-4 mb-6">
-            <image :src="gameInfo.cover" class="w-20 h-20 rounded-2xl border border-gray-100 shadow-sm" mode="aspectFill"></image>
-            <view class="flex-1 flex flex-col justify-center">
-              <text class="text-xl font-black text-gray-900 mb-1">{{ gameInfo.title }}</text>
-              <text class="text-xs text-indigo-500 font-bold uppercase tracking-widest">#{{ gameInfo.tag }}</text>
+      <view class="px-6 mt-6 space-y-8">
+        <view class="bg-indigo-50/50 rounded-3xl p-5 border border-indigo-100/50 flex items-center justify-between">
+          <view class="flex items-center gap-4">
+            <view class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-sm shadow-indigo-500/30">
+              <view class="i-lucide-gift text-white text-xl"></view>
+            </view>
+            <view>
+              <text class="block text-sm font-black text-gray-900 mb-0.5">新手启航礼包</text>
+              <text class="text-[10px] text-gray-500 font-bold">包含海量金币与限定道具</text>
             </view>
           </view>
-
-          <view class="flex justify-between py-4 border-t border-gray-50">
-            <view class="flex flex-col items-center flex-1 border-r border-gray-50">
-              <text class="text-lg font-black text-gray-900">{{ gameInfo.rating }}</text>
-              <text class="text-[10px] text-gray-400 font-bold">评分</text>
-            </view>
-            <view class="flex flex-col items-center flex-1 border-r border-gray-50">
-              <text class="text-lg font-black text-gray-900">{{ gameInfo.downloads }}</text>
-              <text class="text-[10px] text-gray-400 font-bold">下载</text>
-            </view>
-            <view class="flex flex-col items-center flex-1">
-              <text class="text-lg font-black text-gray-900">128M</text>
-              <text class="text-[10px] text-gray-400 font-bold">大小</text>
-            </view>
+          <view 
+            class="px-5 py-2 rounded-full flex items-center justify-center transition-all"
+            :class="hasClaimed ? 'bg-gray-100' : 'bg-indigo-600 active:scale-95 active:bg-indigo-700 shadow-md shadow-indigo-600/30'"
+            @click="handleClaimGift"
+          >
+            <text class="text-xs font-black" :class="hasClaimed ? 'text-gray-400' : 'text-white'">
+              {{ hasClaimed ? '已领取' : '免费领' }}
+            </text>
           </view>
         </view>
 
-        <view class="mt-8" v-if="screenshots.length > 0">
+        <view>
+          <text class="text-sm font-black text-gray-900 block mb-4 tracking-tighter">详细介绍</text>
+          <text class="text-sm text-gray-600 leading-relaxed font-medium">{{ gameInfo.short_desc }}</text>
+        </view>
+
+        <view v-if="screenshots.length > 0">
           <text class="text-sm font-black text-gray-900 block mb-4 tracking-tighter">游戏截图</text>
           <scroll-view scroll-x class="whitespace-nowrap w-full" shows-scrollbar="false">
-            <view
-              v-for="(img, idx) in screenshots"
-              :key="idx"
-              class="inline-block h-64 mr-3 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100"
-              style="min-width: 200rpx;"
+            <view 
+              v-for="(img, idx) in screenshots" 
+              :key="idx" 
+              class="inline-block h-56 mr-3 rounded-2xl overflow-hidden bg-gray-100 border border-gray-100"
             >
-              <image
-                :src="img"
-                class="h-full"
-                mode="heightFix"
-                @click="previewImage(idx)"
-              ></image>
+              <image :src="img" class="h-full" mode="heightFix" @click="previewImage(idx)"></image>
             </view>
           </scroll-view>
         </view>
+      </view>
 
-        <view class="mt-8">
-          <text class="text-sm font-black text-gray-900 block mb-4 tracking-tighter">专属福利</text>
-          <view class="bg-indigo-50/50 rounded-3xl p-5 border border-indigo-100/50 flex items-center justify-between">
-            <view class="flex items-center gap-4">
-              <view class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-sm shadow-indigo-500/30">
-                <view class="i-lucide-gift text-white text-xl"></view>
-              </view>
-              <view>
-                <text class="block text-sm font-black text-gray-900 mb-0.5">{{ giftConfig.gift_name }}</text>
-                <text class="text-[10px] text-gray-500 font-bold">{{ giftConfig.gift_desc }}</text>
-              </view>
-            </view>
-            
-            <view
-              class="px-5 py-2 rounded-full flex items-center justify-center transition-all"
-              :class="hasClaimed ? 'bg-gray-100' : 'bg-indigo-600 active:scale-95 active:bg-indigo-700 shadow-md shadow-indigo-600/30'"
-              @click="handleClaimGift"
-            >
-              <text class="text-xs font-black" :class="hasClaimed ? 'text-gray-400' : 'text-white'">
-                {{ hasClaimed ? '已领取' : '免费领' }}
-              </text>
-            </view>
+      <view class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md pb-safe border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-50">
+        <view class="px-6 h-20 flex items-center gap-4">
+          <view 
+            class="flex flex-col items-center justify-center w-14 transition-all active:scale-90"
+            @click="handleFavorite"
+          >
+            <view class="text-2xl transition-colors duration-300 mb-1" :class="isFavorited ? 'i-lucide-heart text-red-500 fill-current animate-bounce-short' : 'i-lucide-heart text-gray-400'"></view>
+            <text class="text-[10px] font-bold" :class="isFavorited ? 'text-red-500' : 'text-gray-400'">{{ isFavorited ? '已收藏' : '收藏' }}</text>
+          </view>
+
+          <view class="flex-1 h-12 bg-gray-900 rounded-full flex items-center justify-center active:scale-[0.98] transition-all shadow-lg shadow-gray-900/20" @click="handleDownload">
+            <view class="i-lucide-download text-white text-lg mr-2"></view>
+            <text class="text-white font-black text-[15px] tracking-widest">立即下载</text>
           </view>
         </view>
-
-        <view class="mt-8">
-          <text class="text-sm font-black text-gray-900 block mb-3 tracking-tighter">关于游戏</text>
-          <text class="text-sm text-gray-500 leading-relaxed text-justify">
-            {{ gameInfo.full_desc || gameInfo.short_desc || '暂无介绍' }}
-          </text>
-        </view>
       </view>
-    </view>
-
-    <view class="fixed bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-gray-50 flex gap-4">
-      <view class="flex-1 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center active:scale-[0.98] transition-all" @click="handleDownload">
-        <text class="text-white font-black text-sm tracking-widest">立即下载</text>
-      </view>
-    </view>
+    </block>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { onLoad, onPageScroll, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
-import { getGameDetail } from '@/api/game'
-import { claimGiftApi, checkGiftStatusApi, getGiftConfigApi, toggleFavoriteApi, checkFavoriteApi } from '@/api/user'
+import { ref } from 'vue'
+import { onLoad, onNavigationBarButtonTap, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
+import { getGameDetailApi } from '@/api/game'
+import { claimGiftApi, checkFavoriteApi, toggleFavoriteApi } from '@/api/user'
 
-const isLoading = ref(true)
+const loading = ref(true)
 const gameInfo = ref<any>({})
+const screenshots = ref<string[]>([])
 const hasClaimed = ref(false)
-const giftConfig = ref({ gift_name: '新手启航礼包', gift_desc: '包含海量金币与限定道具' })
-
-// 状态栏高度计算
-const systemInfo = uni.getSystemInfoSync()
-const navBarHeight = ref((systemInfo.statusBarHeight || 20) + 44)
-
-// 滚动变色逻辑
-const isScrolled = ref(false)
-onPageScroll((e) => {
-  isScrolled.value = e.scrollTop > 50
-})
-
-// 收藏逻辑
 const isFavorited = ref(false)
 
-// 检查收藏状态
-const checkFavoriteStatus = async (gameId: number) => {
+// 预取礼包和收藏状态 (模拟逻辑，若后端接口存在则直接调用)
+const fetchUserStatus = async (gameId: number) => {
   const userInfoStr = uni.getStorageSync('user_info')
-  if (userInfoStr) {
-    const user = JSON.parse(userInfoStr)
-    const res: any = await checkFavoriteApi(user.id, gameId)
-    isFavorited.value = res.isFavorited
-  }
-}
-
-// 计算截图数组（兼容数据库存 JSON 字符串或空的情况）
-const screenshots = computed(() => {
-  if (!gameInfo.value.screenshots) return []
+  if (!userInfoStr) return
+  const user = JSON.parse(userInfoStr)
   try {
-    return typeof gameInfo.value.screenshots === 'string'
-      ? JSON.parse(gameInfo.value.screenshots)
-      : gameInfo.value.screenshots
-  } catch (e) {
-    return []
-  }
-})
+    const favRes: any = await checkFavoriteApi(user.id, gameId)
+    isFavorited.value = favRes.isFavorited
+    // 如果后端有 check 接口，在这里检查礼包：hasClaimed.value = res.isClaimed
+  } catch (error) {}
+}
 
 const fetchGameDetail = async (id: string) => {
   try {
-    const data = await getGameDetail(id)
-    gameInfo.value = data
-  } catch (e) {
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    const res: any = await getGameDetailApi(id)
+    gameInfo.value = res
+    if (res.screenshots) {
+      screenshots.value = typeof res.screenshots === 'string' ? JSON.parse(res.screenshots) : res.screenshots
+    }
+    await fetchUserStatus(res.id)
+  } catch (error) {
+    uni.showToast({ title: '获取数据失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 }
 
-const checkGiftStatus = async (userId: number, gameId: string) => {
-  try {
-    const res: any = await checkGiftStatusApi(userId, gameId)
-    return res.isClaimed
-  } catch (e) {
-    return false
-  }
-}
+onLoad((options: any) => {
+  if (options.id) fetchGameDetail(options.id)
+})
 
-const fetchGiftConfig = async (gameId: string) => {
-  try {
-    const res: any = await getGiftConfigApi(gameId)
-    giftConfig.value = res
-  } catch (e) {
-    // 使用默认值
-  }
-}
+// 监听原生导航栏右上角按钮点击 (主要用于App端分享)
+onNavigationBarButtonTap((e) => {
+  if (e.index === 0) handleShare()
+})
 
 const handleClaimGift = async () => {
-  if (hasClaimed.value) return uni.showToast({ title: '已领过了，请前往我的礼包查看', icon: 'none' })
-  
+  if (hasClaimed.value) return uni.showToast({ title: '请前往我的礼包查看', icon: 'none' })
   const userInfoStr = uni.getStorageSync('user_info')
   if (!userInfoStr) {
     uni.showToast({ title: '请先登录', icon: 'none' })
     setTimeout(() => uni.navigateTo({ url: '/pages/login/index' }), 1000)
     return
   }
-  
   const user = JSON.parse(userInfoStr)
-  uni.showLoading({ title: '领取中...' })
-  
+  uni.showLoading({ title: '领取中' })
   try {
-    const res: any = await claimGiftApi({
-      user_id: user.id,
-      game_id: gameInfo.value.id
-    })
-    
+    const res: any = await claimGiftApi({ user_id: user.id, game_id: gameInfo.value.id })
     uni.hideLoading()
-    uni.showToast({ title: '领取成功！', icon: 'success' })
+    uni.showToast({ title: '领取成功', icon: 'success' })
     hasClaimed.value = true
-    
     setTimeout(() => {
       uni.showModal({
-        title: '您的专属激活码',
-        content: res.gift_code,
-        confirmText: '复制',
-        success: (mRes) => {
-          if (mRes.confirm) {
-            uni.setClipboardData({ data: res.gift_code })
-          }
-        }
+        title: '激活码', content: res.gift_code, confirmText: '复制',
+        success: (mRes) => { if (mRes.confirm) uni.setClipboardData({ data: res.gift_code }) }
       })
-    }, 1500)
-    
-  } catch (error) {
+    }, 1000)
+  } catch (error: any) {
     uni.hideLoading()
-    if (error && (error as any).code === 400) {
-       hasClaimed.value = true
-    }
+    if (error && error.code === 400) hasClaimed.value = true
   }
-}
-
-onLoad(async (options: any) => {
-  if (options.id) {
-    try {
-      // 1. 获取游戏详情
-      await fetchGameDetail(options.id)
-      
-      // 2. 获取礼包配置
-      await fetchGiftConfig(options.id)
-      
-      // 3. 预判领取状态
-      const userInfoStr = uni.getStorageSync('user_info')
-      if (userInfoStr) {
-        const { id: userId } = JSON.parse(userInfoStr)
-        const isClaimed = await checkGiftStatus(userId, options.id)
-        hasClaimed.value = isClaimed
-      }
-      
-      // 4. 检查收藏状态
-      await checkFavoriteStatus(gameInfo.value.id)
-    } catch (e) {
-      uni.showToast({ title: '加载失败', icon: 'none' })
-    } finally {
-      isLoading.value = false
-    }
-  }
-})
-
-const goBack = () => uni.navigateBack()
-
-const previewImage = (current: number) => {
-  uni.previewImage({
-    urls: screenshots.value,
-    current: current
-  })
-}
-
-const handleDownload = () => {
-  uni.vibrateShort({})
-  uni.showLoading({ title: '准备下载...' })
-  setTimeout(() => {
-    uni.hideLoading()
-    uni.showToast({ title: '由于是演示版本，暂不支持真实下载', icon: 'none' })
-  }, 1500)
 }
 
 const handleFavorite = async () => {
@@ -318,42 +174,35 @@ const handleFavorite = async () => {
     const res: any = await toggleFavoriteApi({ user_id: user.id, game_id: gameInfo.value.id })
     isFavorited.value = res.isFavorited
     uni.showToast({ title: res.message, icon: 'none' })
-  } catch (e) {
-    console.log(e)
-  }
+    if(res.isFavorited) uni.vibrateShort({}) // 收藏成功给个微弱震动
+  } catch (e) {}
 }
 
-// 分享逻辑
+const handleDownload = () => {
+  uni.showToast({ title: '准备开始下载...', icon: 'none' })
+}
+
+const previewImage = (index: number) => {
+  uni.previewImage({ current: index, urls: screenshots.value })
+}
+
 const handleShare = () => {
-  // 兼容 H5 点击分享提示
   // #ifdef H5
-  uni.showToast({ title: '请点击浏览器右上角菜单进行分享', icon: 'none' })
+  uni.showToast({ title: '请点击浏览器右上角菜单分享', icon: 'none' })
   // #endif
 }
 
-// 微信小程序原生分享
-onShareAppMessage(() => {
-  return {
-    title: `推荐给你一款超棒的游戏：${gameInfo.value.title}`,
-    path: `/pages/detail/index?id=${gameInfo.value.id}`,
-    imageUrl: gameInfo.value.cover
-  }
-})
-onShareTimeline(() => {
-  return {
-    title: `我在盒子发现了一款神作：${gameInfo.value.title}`,
-    query: `id=${gameInfo.value.id}`,
-    imageUrl: gameInfo.value.cover
-  }
-})
+// 小程序分享
+onShareAppMessage(() => ({ title: gameInfo.value.title, path: `/pages/detail/index?id=${gameInfo.value.id}` }))
+onShareTimeline(() => ({ title: gameInfo.value.title, query: `id=${gameInfo.value.id}` }))
 </script>
 
 <style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+.animate-bounce-short {
+  animation: bounceShort 0.5s ease-in-out 1;
 }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10rpx); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes bounceShort {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
 }
 </style>
