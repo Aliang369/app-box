@@ -1,32 +1,65 @@
 <template>
-  <view class="min-h-screen bg-[#F9FAFB] pb-10">
-    <view class="sticky top-0 z-30 pt-12 pb-4 px-5 bg-white border-b border-gray-100 flex items-center">
-      <view class="i-lucide-arrow-left text-gray-900 text-xl" @click="goBack"></view>
-      <text class="ml-4 text-lg font-bold text-gray-900">我的礼包</text>
+  <view class="min-h-screen bg-white px-6 pt-24 pb-10 flex flex-col">
+    <view class="mb-10 flex items-center justify-between">
+      <view>
+        <text class="text-3xl font-black text-gray-900 block mb-2 tracking-tight">我的礼包</text>
+        <text class="text-xs text-gray-400 font-bold uppercase tracking-widest">Gift Center</text>
+      </view>
+      <view class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center active:bg-gray-100" @click="goBack">
+        <view class="i-lucide-x text-gray-400 text-lg"></view>
+      </view>
     </view>
 
-    <view class="px-5 mt-6">
-      <view v-if="isFirstLoading">
-         <view v-for="i in 4" :key="i" class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-4 animate-pulse h-28"></view>
-      </view>
+    <view v-if="loading" class="flex flex-col items-center justify-center py-20">
+      <view class="i-lucide-loader-2 animate-spin text-gray-200 text-3xl mb-4"></view>
+      <text class="text-xs text-gray-300 font-bold">正在整理您的福利...</text>
+    </view>
 
-      <view v-else>
-        <view v-if="gifts.length === 0" class="flex flex-col items-center justify-center pt-20">
-          <view class="i-lucide-inbox text-4xl text-gray-200 mb-4"></view>
-          <text class="text-sm text-gray-400">暂未领取任何礼包</text>
-        </view>
-        <view v-else v-for="item in gifts" :key="item.id" class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4 animate-fade-in">
-          <view class="flex items-center justify-between mb-3">
-             <text class="text-[15px] font-bold text-gray-900">{{ item.title }}</text>
-             <text class="text-[10px] text-gray-400">{{ item.date }}</text>
+    <block v-else-if="giftList.length > 0">
+      <view class="space-y-6">
+        <view
+          v-for="(item, index) in giftList"
+          :key="index"
+          class="group bg-white rounded-[40rpx] border border-gray-100 p-5 shadow-sm shadow-gray-100/50 active:scale-[0.98] transition-all"
+        >
+          <view class="flex items-center gap-4 mb-5">
+            <image :src="item.cover" class="w-14 h-14 rounded-2xl bg-gray-50" mode="aspectFill" />
+            <view class="flex-1">
+              <text class="text-base font-black text-gray-900 block mb-0.5">{{ item.title }}</text>
+              <text class="text-[10px] text-gray-400 font-bold">{{ formatDate(item.created_at) }} 领取</text>
+            </view>
+            <view class="px-3 py-1 bg-green-50 rounded-lg">
+              <text class="text-[10px] text-green-600 font-bold">已入库</text>
+            </view>
           </view>
-          <view class="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100/50">
-             <text class="text-lg font-mono font-bold text-indigo-600 tracking-wider">{{ item.code }}</text>
-             <view class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-100 active:bg-gray-50" @click="copyCode(item.code)">
-               <view class="i-lucide-copy text-gray-500 text-sm"></view>
-             </view>
+
+          <view
+            class="bg-gray-50/80 rounded-2xl p-4 flex items-center justify-between border border-dashed border-gray-200"
+            @click="copyCode(item.gift_code)"
+          >
+            <view>
+              <text class="text-[10px] text-gray-400 font-bold block mb-1 uppercase tracking-tighter">激活码</text>
+              <text class="text-sm font-mono font-black text-indigo-600 tracking-wider">{{ item.gift_code }}</text>
+            </view>
+            <view class="flex items-center gap-1.5 text-indigo-400">
+              <text class="text-[10px] font-black uppercase">复制</text>
+              <view class="i-lucide-copy text-xs"></view>
+            </view>
           </view>
         </view>
+      </view>
+    </block>
+
+    <view v-else class="flex-1 flex flex-col items-center justify-center pb-20">
+      <view class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+        <view class="i-lucide-gift text-gray-200 text-4xl"></view>
+      </view>
+      <text class="text-sm text-gray-400 font-bold mb-10">这里空空如也，快去领一个吧</text>
+      <view
+        class="px-8 py-3 bg-gray-900 rounded-full active:scale-95 transition-all"
+        @click="goToDiscover"
+      >
+        <text class="text-white text-xs font-black tracking-widest">去发现惊喜</text>
       </view>
     </view>
   </view>
@@ -34,32 +67,52 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { onLoad, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onShow } from '@dcloudio/uni-app'
+import { getMyGiftsApi } from '@/api/user'
+
+const loading = ref(true)
+const giftList = ref<any[]>([])
+
+const fetchGifts = async () => {
+  const userInfoStr = uni.getStorageSync('user_info')
+  if (!userInfoStr) {
+    loading.value = false
+    return
+  }
+  
+  const user = JSON.parse(userInfoStr)
+  try {
+    const res: any = await getMyGiftsApi(user.id)
+    giftList.value = res
+  } catch (e) {
+    // 错误处理由 request 拦截器负责
+  } finally {
+    loading.value = false
+  }
+}
+
+onShow(() => {
+  fetchGifts()
+})
 
 const goBack = () => uni.navigateBack()
+
+const goToDiscover = () => {
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
 const copyCode = (code: string) => {
-  uni.setClipboardData({ data: code, success: () => uni.showToast({ title: '复制成功', icon: 'none' }) })
+  uni.setClipboardData({
+    data: code,
+    success: () => {
+      uni.vibrateShort({})
+    }
+  })
 }
 
-const gifts = ref<any[]>([])
-const isFirstLoading = ref(true)
-
-const fetchData = () => {
-  setTimeout(() => {
-    gifts.value = [
-      { id: '1', title: '《星穹幻轨》新手十连抽', date: '2026.05.08', code: 'STAR2026XQ' },
-      { id: '2', title: '《元气小骑士》金币补给', date: '2026.05.07', code: 'YQKNIGHT99' }
-    ]
-    isFirstLoading.value = false
-    uni.stopPullDownRefresh()
-  }, 600)
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`
 }
-
-onLoad(() => fetchData())
-onPullDownRefresh(() => { isFirstLoading.value = true; fetchData() })
 </script>
-
-<style scoped>
-.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-</style>

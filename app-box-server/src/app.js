@@ -20,6 +20,18 @@ db.query(`
   )
 `).catch(console.error);
 
+// --- 自动初始化礼包领取记录表 ---
+db.query(`
+  CREATE TABLE IF NOT EXISTS user_gifts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    game_id INT NOT NULL,
+    gift_code VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_game (user_id, game_id)
+  )
+`).catch(console.error);
+
 app.get('/api/banners', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM banners ORDER BY sort_order DESC LIMIT 5');
@@ -247,6 +259,54 @@ app.post('/api/login', async (req, res) => {
   } catch (error) {
     console.error('Login Error:', error);
     res.status(500).json({ code: 500, message: '服务器内部错误' });
+  }
+});
+
+// --- 用户礼包 API ---
+
+// 12. 领取游戏礼包
+app.post('/api/gifts/claim', async (req, res) => {
+  const { user_id, game_id } = req.body;
+  
+  if (!user_id || !game_id) {
+    return res.status(400).json({ code: 400, message: '参数缺失' });
+  }
+
+  try {
+    const giftCode = 'GIFT-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+    
+    await db.query(
+      'INSERT INTO user_gifts (user_id, game_id, gift_code) VALUES (?, ?, ?)',
+      [user_id, game_id, giftCode]
+    );
+    
+    res.json({ code: 0, message: '领取成功', data: { gift_code: giftCode } });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.json({ code: 400, message: '您已经领取过该游戏的礼包啦' });
+    } else {
+      res.status(500).json({ code: 500, message: '领取失败' });
+    }
+  }
+});
+
+// 13. 获取“我的礼包”列表
+app.get('/api/my/gifts', async (req, res) => {
+  const user_id = req.query.user_id;
+  if (!user_id) return res.status(400).json({ code: 400, message: '未登录' });
+
+  try {
+    const [rows] = await db.query(`
+      SELECT ug.gift_code, ug.created_at, g.title, g.cover
+      FROM user_gifts ug
+      JOIN games g ON ug.game_id = g.id
+      WHERE ug.user_id = ?
+      ORDER BY ug.id DESC
+    `, [user_id]);
+    
+    res.json({ code: 0, message: 'success', data: rows });
+  } catch (error) {
+    res.status(500).json({ code: 500, message: '获取失败' });
   }
 });
 

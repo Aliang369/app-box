@@ -75,6 +75,31 @@
         </view>
 
         <view class="mt-8">
+          <text class="text-sm font-black text-gray-900 block mb-4 tracking-tighter">专属福利</text>
+          <view class="bg-indigo-50/50 rounded-3xl p-5 border border-indigo-100/50 flex items-center justify-between">
+            <view class="flex items-center gap-4">
+              <view class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-sm shadow-indigo-500/30">
+                <view class="i-lucide-gift text-white text-xl"></view>
+              </view>
+              <view>
+                <text class="block text-sm font-black text-gray-900 mb-0.5">新手启航礼包</text>
+                <text class="text-[10px] text-gray-500 font-bold">包含海量金币与限定道具</text>
+              </view>
+            </view>
+            
+            <view
+              class="px-5 py-2 rounded-full flex items-center justify-center transition-all"
+              :class="hasClaimed ? 'bg-gray-100' : 'bg-indigo-600 active:scale-95 active:bg-indigo-700 shadow-md shadow-indigo-600/30'"
+              @click="handleClaimGift"
+            >
+              <text class="text-xs font-black" :class="hasClaimed ? 'text-gray-400' : 'text-white'">
+                {{ hasClaimed ? '已领取' : '免费领' }}
+              </text>
+            </view>
+          </view>
+        </view>
+
+        <view class="mt-8">
           <text class="text-sm font-black text-gray-900 block mb-3 tracking-tighter">关于游戏</text>
           <text class="text-sm text-gray-500 leading-relaxed text-justify">
             {{ gameInfo.full_desc || gameInfo.short_desc || '暂无介绍' }}
@@ -95,9 +120,11 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getGameDetail } from '@/api/game'
+import { claimGiftApi } from '@/api/user'
 
 const isLoading = ref(true)
 const gameInfo = ref<any>({})
+const hasClaimed = ref(false)
 
 // 计算截图数组（兼容数据库存 JSON 字符串或空的情况）
 const screenshots = computed(() => {
@@ -110,6 +137,50 @@ const screenshots = computed(() => {
     return []
   }
 })
+
+const handleClaimGift = async () => {
+  if (hasClaimed.value) return uni.showToast({ title: '已领过了，请前往我的礼包查看', icon: 'none' })
+  
+  const userInfoStr = uni.getStorageSync('user_info')
+  if (!userInfoStr) {
+    uni.showToast({ title: '请先登录', icon: 'none' })
+    setTimeout(() => uni.navigateTo({ url: '/pages/login/index' }), 1000)
+    return
+  }
+  
+  const user = JSON.parse(userInfoStr)
+  uni.showLoading({ title: '领取中...' })
+  
+  try {
+    const res: any = await claimGiftApi({
+      user_id: user.id,
+      game_id: gameInfo.value.id
+    })
+    
+    uni.hideLoading()
+    uni.showToast({ title: '领取成功！', icon: 'success' })
+    hasClaimed.value = true
+    
+    setTimeout(() => {
+      uni.showModal({
+        title: '您的专属激活码',
+        content: res.gift_code,
+        confirmText: '复制',
+        success: (mRes) => {
+          if (mRes.confirm) {
+            uni.setClipboardData({ data: res.gift_code })
+          }
+        }
+      })
+    }, 1500)
+    
+  } catch (error) {
+    uni.hideLoading()
+    if (error && (error as any).code === 400) {
+       hasClaimed.value = true
+    }
+  }
+}
 
 onLoad(async (options: any) => {
   if (options.id) {

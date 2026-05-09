@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 
 const props = defineProps<{
@@ -43,9 +43,30 @@ const props = defineProps<{
 
 const active = ref(props.current)
 
+// tabBar 列表配置
+const list = [
+  { pagePath: '/pages/index/index' },
+  { pagePath: '/pages/my/index' }
+]
+
 watch(() => props.current, (val) => {
   active.value = val
 }, { immediate: true })
+
+onMounted(() => {
+  // 获取当前页面栈
+  const pages = getCurrentPages()
+  if (pages.length === 0) return
+  // 获取当前页面路由路径 (如: 'pages/my/index')
+  const currentPageRoute = pages[pages.length - 1].route
+  
+  // 遍历 tabBar 列表，如果当前路由与 list 中的 pagePath 匹配，就把它设为高亮
+  const index = list.findIndex(item => item.pagePath === `/${currentPageRoute}` || item.pagePath === currentPageRoute)
+  
+  if (index !== -1) {
+    active.value = index
+  }
+})
 
 onShow(() => {
   active.value = props.current
