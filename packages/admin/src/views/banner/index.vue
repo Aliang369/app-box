@@ -6,7 +6,15 @@
       </template>
 
       <template #image_url="scope">
-        <el-image :src="scope.row.image_url" class="h-24 w-full rounded-md object-cover" fit="cover" />
+        <div class="flex justify-center">
+          <el-image
+            :src="scope.row.image_url"
+            :preview-src-list="[scope.row.image_url]"
+            preview-teleported
+            fit="cover"
+            class="h-[120px] w-[220px] rounded-md"
+          />
+        </div>
       </template>
 
       <template #operation="scope">
@@ -68,7 +76,11 @@ const formData = ref({
 const getTableList = async (params: any) => {
   try {
     const res = await fetch(`${BASE_URL}/api/admin/banners`).then(r => r.json());
-    let list = res.data || [];
+    let list = (res.data || []).map((item: any) => ({
+      ...item,
+      operation_time: item.operation_time || item.updated_at || item.created_at || null,
+      operator: item.operator || item.updated_by_name || item.updated_by || item.created_by_name || item.created_by || null
+    }));
 
     // 按关联游戏 ID 搜索
     if (params.game_id) {
@@ -90,9 +102,11 @@ const getTableList = async (params: any) => {
 
 const columns = reactive<ColumnProps[]>([
   { type: "index", label: "#", width: 80 },
-  { prop: "image_url", label: "轮播图片展示", minWidth: 300 },
+  { prop: "image_url", label: "轮播图片展示", width: 260 },
   { prop: "game_id", label: "关联游戏ID", width: 150, search: { el: "input", tooltip: "输入游戏ID查找" } },
   { prop: "sort_order", label: "排序权重", width: 120 },
+  { prop: "operation_time", label: "操作时间", width: 180 },
+  { prop: "operator", label: "操作人", minWidth: 120 },
   { prop: "operation", label: "操作", fixed: "right", width: 180 }
 ]);
 

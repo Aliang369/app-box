@@ -15,6 +15,14 @@ export const getBannerList = () => {
   })
 }
 
+// 获取首页金刚区（仅展示后台开启项）
+export const getHomeNavList = () => {
+  return request({
+    url: '/api/home-navs',
+    method: 'GET'
+  })
+}
+
 // 获取游戏详情 API
 export const getGameDetail = (id: string) => {
   return request({

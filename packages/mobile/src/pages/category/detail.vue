@@ -33,7 +33,10 @@
               <image :src="item.cover" class="w-16 h-16 rounded-xl border border-gray-100 bg-white" mode="aspectFill"></image>
               <view class="flex-1 flex flex-col justify-center">
                 <text class="text-[15px] font-bold text-gray-900">{{ item.title }}</text>
-                <text class="text-[12px] text-gray-400 mt-1">#{{ item.tag }} · 热度 {{ item.rating }}</text>
+                <view class="flex items-center gap-2 mt-1">
+                  <text class="text-[11px] font-semibold text-amber-500 leading-none">★ {{ item.rating }}</text>
+                  <text class="text-[10px] text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-sm">#{{ item.tag }}</text>
+                </view>
               </view>
             </view>
           </view>

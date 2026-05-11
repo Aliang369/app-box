@@ -250,6 +250,23 @@ export function formatTableColumn(row: number, col: number, callValue: any) {
 export function formatValue(callValue: any) {
   // 如果当前值为数组，使用 / 拼接（根据需求自定义）
   if (isArray(callValue)) return callValue.length ? callValue.join(" / ") : "--";
+  // Format ISO datetime strings for table display.
+  if (typeof callValue === "string") {
+    const isoDateReg = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})?$/;
+    if (isoDateReg.test(callValue)) {
+      const date = new Date(callValue);
+      if (!Number.isNaN(date.getTime())) {
+        const pad = (num: number) => String(num).padStart(2, "0");
+        const y = date.getFullYear();
+        const m = pad(date.getMonth() + 1);
+        const d = pad(date.getDate());
+        const h = pad(date.getHours());
+        const mm = pad(date.getMinutes());
+        const s = pad(date.getSeconds());
+        return `${y}-${m}-${d} ${h}:${mm}:${s}`;
+      }
+    }
+  }
   return callValue ?? "--";
 }
 

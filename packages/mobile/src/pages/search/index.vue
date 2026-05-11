@@ -52,7 +52,10 @@
             <image :src="game.cover" class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-100" mode="aspectFill"></image>
             <view class="ml-3 flex-1">
               <text class="text-sm font-bold text-gray-900 block">{{ game.title }}</text>
-              <text class="text-xs text-gray-400 mt-1 block">#{{ game.tag }}</text>
+              <view class="flex items-center gap-2 mt-1">
+                <text class="text-[11px] font-semibold text-amber-500 leading-none">★ {{ game.rating || '5.0' }}</text>
+                <text class="text-[10px] text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-sm">#{{ game.tag || '热门' }}</text>
+              </view>
             </view>
             <view class="i-lucide-chevron-right text-gray-300"></view>
           </view>

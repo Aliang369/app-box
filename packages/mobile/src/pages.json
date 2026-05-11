@@ -51,40 +51,6 @@
       }
     },
     {
-      "path": "pages/latest/index",
-      "style": {
-        "navigationBarTitleText": "最新上线",
-        "navigationStyle": "custom",
-        "enablePullDownRefresh": true,
-        "backgroundTextStyle": "dark"
-      }
-    },
-    {
-      "path": "pages/rank/index",
-      "style": {
-        "navigationBarTitleText": "排行榜单",
-        "navigationStyle": "custom",
-        "enablePullDownRefresh": true,
-        "backgroundTextStyle": "dark"
-      }
-    },
-    {
-      "path": "pages/gift/index",
-      "style": {
-        "navigationBarTitleText": "专属福利",
-        "navigationStyle": "custom",
-        "enablePullDownRefresh": true,
-        "backgroundTextStyle": "dark"
-      }
-    },
-    {
-      "path": "pages/category/index",
-      "style": {
-        "navigationBarTitleText": "分类大全",
-        "navigationStyle": "custom"
-      }
-    },
-    {
       "path": "pages/category/detail",
       "style": { "navigationStyle": "custom", "enablePullDownRefresh": true, "backgroundTextStyle": "dark" }
     },

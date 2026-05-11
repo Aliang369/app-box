@@ -24,7 +24,7 @@
       </view>
     </view>
 
-    <view class="mt-4 px-5">
+    <view class="mt-4 px-5" v-if="isFirstLoading || navList.length">
       <view v-if="isFirstLoading" class="flex justify-between items-center bg-white rounded-2xl p-2 border border-gray-100 shadow-sm">
         <view v-for="i in 4" :key="i" class="flex flex-col items-center justify-center w-[22%] py-2">
           <view class="w-7 h-7 rounded-full bg-gray-100 animate-pulse mb-2"></view>
@@ -39,13 +39,13 @@
           class="flex flex-col items-center justify-center w-[22%] py-2 rounded-xl active:bg-gray-50 transition-colors"
           @click="handleNavClick(nav)"
         >
-          <view :class="['text-[22px] mb-1.5 text-indigo-500', nav.icon]"></view>
+          <view class="text-[22px] mb-1.5 text-indigo-500 nav-icon" :style="getNavIconStyle(nav.icon)"></view>
           <text class="text-[12px] font-medium text-gray-600 tracking-tight">{{ nav.name }}</text>
         </view>
       </view>
     </view>
 
-    <view class="px-5 mt-8 pb-10">
+    <view class="px-5 mt-4 pb-10">
       <view class="flex items-center justify-between mb-4 px-1">
         <text class="text-base font-bold text-gray-900 tracking-wide">热门推荐</text>
         <view class="flex items-center gap-1 px-2 py-1 bg-white border border-gray-100 rounded-full active:bg-gray-50 transition-colors" @click="refreshData">
@@ -81,22 +81,18 @@
           <view class="w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
             <image :src="game.cover" class="w-full h-full object-cover" mode="aspectFill"></image>
           </view>
-          <view class="flex-1 ml-4 flex flex-col justify-between py-1">
-            <view>
-              <view class="flex items-center justify-between mb-1">
-                <text class="text-[15px] font-bold text-gray-900 truncate max-w-[300rpx]">{{ game.title }}</text>
-                <text class="text-[10px] text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-sm">#{{ game.tag }}</text>
-              </view>
-              <text class="text-[11px] text-gray-400 line-clamp-2 leading-relaxed">{{ game.desc }}</text>
+          <view class="flex-1 ml-4 min-w-0 h-20 flex flex-col">
+            <view class="flex-1 min-h-0 flex items-center">
+              <text class="text-[15px] font-bold text-gray-900 leading-tight break-all">{{ game.title }}</text>
             </view>
-            <view class="flex items-center gap-4 mt-1">
+            <view class="flex-1 min-h-0 flex items-center gap-2">
+              <text class="text-[11px] font-semibold text-amber-500 leading-none">★ {{ game.rating }}</text>
+              <text class="text-[10px] text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-sm">#{{ game.tag }}</text>
+            </view>
+            <view class="flex-1 min-h-0 flex items-center">
               <view class="flex items-center">
                 <text class="text-[10px] text-gray-400 mr-1">下载</text>
                 <text class="text-[11px] font-medium text-gray-700">{{ game.downloads }}</text>
-              </view>
-              <view class="flex items-center">
-                <text class="text-[10px] text-gray-400 mr-1">评分</text>
-                <text class="text-[11px] font-medium text-gray-700">{{ game.rating }}</text>
               </view>
             </view>
           </view>
@@ -119,16 +115,10 @@
 import { ref } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
-import { getGameList, getBannerList } from '@/api/game'
+import { getGameList, getBannerList, getHomeNavList } from '@/api/game'
 
 const bannerList = ref<string[]>([])
-
-const navList = ref([
-  { name: '最新', url: '/pages/latest/index', icon: 'i-lucide-sparkles' },
-  { name: '排行', url: '/pages/rank/index', icon: 'i-lucide-bar-chart-2' },
-  { name: '福利', url: '/pages/gift/index', icon: 'i-lucide-gift' },
-  { name: '分类', url: '/pages/category/index', icon: 'i-lucide-layout-grid' },
-])
+const navList = ref<any[]>([])
 
 const gameList = ref<any[]>([])
 const page = ref(1)
@@ -143,12 +133,14 @@ const fetchGameListData = async (isRefresh = false) => {
 
   try {
     if (isRefresh) {
-      const [banners, newData] = await Promise.all([
+      const [banners, navs, newData] = await Promise.all([
         getBannerList(),
+        getHomeNavList(),
         getGameList({ page: 1, limit: 5 })
       ])
 
       bannerList.value = banners.map((item: any) => item.image_url)
+      navList.value = navs || []
 
       const data = newData.list || newData
       gameList.value = data
@@ -187,13 +179,6 @@ onReachBottom(() => {
   fetchGameListData(false)
 })
 
-const handleNavClick = (nav: any) => {
-  uni.vibrateShort({})
-  if (nav.url) {
-    uni.navigateTo({ url: nav.url })
-  }
-}
-
 const refreshData = () => {
   if (isRefreshing.value || loadingStatus.value === 'loading') return
   uni.vibrateShort({})
@@ -205,12 +190,66 @@ const refreshData = () => {
 }
 
 const goToSearch = () => uni.navigateTo({ url: '/pages/search/index' })
+const getNavIconStyle = (icon: string) => {
+  if (!icon) return {}
+  const trimmed = icon.trim()
+  if (!trimmed) return {}
+
+  // 支持后端传 i-lucide-gamepad-2 / lucide:gamepad-2 / gamepad-2 三种格式
+  const iconName = trimmed.startsWith('i-lucide-')
+    ? `lucide:${trimmed.replace('i-lucide-', '')}`
+    : trimmed.includes(':')
+      ? trimmed
+      : `lucide:${trimmed}`
+
+  const encoded = encodeURIComponent(iconName)
+  return {
+    backgroundImage: `url("https://api.iconify.design/${encoded}.svg?color=%236366f1")`
+  }
+}
+
+const handleNavClick = (nav: any) => {
+  const rawLink = String(nav?.link_url ?? '').trim()
+  if (!rawLink) return
+
+  uni.vibrateShort({})
+
+  // 兼容 http(s)://、//、www.xx.com、xx.com 等外链写法
+  const isExternalLink =
+    /^(https?:)?\/\//i.test(rawLink) || /^[a-z0-9-]+(\.[a-z0-9-]+)+([/:?#].*)?$/i.test(rawLink)
+
+  if (isExternalLink) {
+    const targetUrl = /^(https?:)?\/\//i.test(rawLink) ? rawLink : `https://${rawLink}`
+
+    // #ifdef H5
+    window.open(targetUrl, '_blank')
+    return
+    // #endif
+    uni.showToast({ title: '当前端暂不支持外链直达', icon: 'none' })
+    return
+  }
+
+  uni.navigateTo({
+    url: rawLink,
+    fail: () => {
+      uni.showToast({ title: '该跳转页面未配置或不存在', icon: 'none' })
+    }
+  })
+}
 const goToGameDetail = (game: any) => {
   uni.navigateTo({ url: `/pages/detail/index?id=${game.id}` })
 }
 </script>
 
 <style scoped>
+.nav-icon {
+  width: 22px;
+  height: 22px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }

@@ -10,6 +10,23 @@ app.use(express.json());
 
 const JWT_SECRET = 'appbox_super_secret_key_2024';
 
+// 保证金刚区配置表存在（首次启动自动建表）
+const ensureTables = async () => {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS home_navs (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      name VARCHAR(50) NOT NULL,
+      icon VARCHAR(100) NOT NULL,
+      link_url VARCHAR(255) NOT NULL,
+      sort_order INT NOT NULL DEFAULT 0,
+      is_visible TINYINT(1) NOT NULL DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+  `);
+};
+ensureTables().catch(err => console.error('初始化数据表失败:', err));
+
 // ==========================================
 // ====== 1. C端 (手机App) 业务接口 =======
 // ==========================================
@@ -20,6 +37,18 @@ app.get('/api/banners', async (req, res) => {
     const [rows] = await db.query('SELECT * FROM banners ORDER BY sort_order DESC, id DESC');
     res.json({ code: 0, data: rows });
   } catch (e) { res.status(500).json({ code: 500 }); }
+});
+
+// 获取首页金刚区（仅返回已展示配置）
+app.get('/api/home-navs', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT id, name, icon, link_url, sort_order, is_visible FROM home_navs WHERE is_visible = 1 ORDER BY sort_order DESC, id DESC'
+    );
+    res.json({ code: 0, data: rows });
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '获取金刚区失败' });
+  }
 });
 
 // 获取游戏列表
@@ -186,6 +215,74 @@ app.get('/api/admin/users', async (req, res) => {
 app.get('/api/admin/gift-records', async (req, res) => {
   const [rows] = await db.query('SELECT ug.*, u.username, g.title FROM user_gifts ug JOIN users u ON ug.user_id = u.id JOIN games g ON ug.game_id = g.id');
   res.json({ code: 0, data: rows });
+});
+
+// 金刚区配置列表（后台）
+app.get('/api/admin/home-navs', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM home_navs ORDER BY sort_order DESC, id DESC');
+    res.json({ code: 0, data: rows });
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '获取金刚区配置失败' });
+  }
+});
+
+// 新增金刚区配置
+app.post('/api/admin/home-navs', async (req, res) => {
+  const { name, icon, link_url, sort_order = 0, is_visible = 1 } = req.body || {};
+  if (!name || !icon || !link_url) {
+    return res.json({ code: 400, message: '名称、图标、跳转链接不能为空' });
+  }
+  try {
+    const [result] = await db.query(
+      'INSERT INTO home_navs (name, icon, link_url, sort_order, is_visible) VALUES (?, ?, ?, ?, ?)',
+      [name, icon, link_url, Number(sort_order) || 0, is_visible ? 1 : 0]
+    );
+    res.json({ code: 0, data: { id: result.insertId }, message: '新增成功' });
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '新增失败' });
+  }
+});
+
+// 修改金刚区配置
+app.put('/api/admin/home-navs/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, icon, link_url, sort_order = 0, is_visible = 1 } = req.body || {};
+  if (!name || !icon || !link_url) {
+    return res.json({ code: 400, message: '名称、图标、跳转链接不能为空' });
+  }
+  try {
+    await db.query(
+      'UPDATE home_navs SET name = ?, icon = ?, link_url = ?, sort_order = ?, is_visible = ? WHERE id = ?',
+      [name, icon, link_url, Number(sort_order) || 0, is_visible ? 1 : 0, id]
+    );
+    res.json({ code: 0, message: '修改成功' });
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '修改失败' });
+  }
+});
+
+// 切换显示隐藏
+app.patch('/api/admin/home-navs/:id/visible', async (req, res) => {
+  const { id } = req.params;
+  const { is_visible } = req.body || {};
+  try {
+    await db.query('UPDATE home_navs SET is_visible = ? WHERE id = ?', [is_visible ? 1 : 0, id]);
+    res.json({ code: 0, message: '状态更新成功' });
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '状态更新失败' });
+  }
+});
+
+// 删除金刚区配置
+app.delete('/api/admin/home-navs/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM home_navs WHERE id = ?', [id]);
+    res.json({ code: 0, message: '删除成功' });
+  } catch (e) {
+    res.status(500).json({ code: 500, message: '删除失败' });
+  }
 });
 
 app.listen(3000, () => console.log('Server running on 3000'));
