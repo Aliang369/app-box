@@ -23,11 +23,7 @@ export const createVitePlugins = (viteEnv: ViteEnv): (PluginOption | PluginOptio
     // vue 可以使用 jsx/tsx 语法
     vueJsx(),
     // devTools
-<<<<<<< HEAD
     // VITE_DEVTOOLS && NextDevTools({ launchEditor: "code" }),
-=======
-    VITE_DEVTOOLS && NextDevTools({ launchEditor: "code" }),
->>>>>>> fb2793f092f942c1d0a66e4f8bca85e0db4319fb
     // esLint 报错信息显示在浏览器界面上
     eslintPlugin(),
     // name 可以写在 script 标签上
