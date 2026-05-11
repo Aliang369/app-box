@@ -52,7 +52,10 @@
     "pinia-plugin-persistedstate": "^3.2.1",
     "qs": "^6.12.1",
     "screenfull": "^6.0.2",
+<<<<<<< HEAD
     "sirv": "^3.0.2",
+=======
+>>>>>>> fb2793f092f942c1d0a66e4f8bca85e0db4319fb
     "sortablejs": "^1.15.2",
     "vue": "^3.4.31",
     "vue-i18n": "^9.13.1",
@@ -71,7 +74,11 @@
     "@vitejs/plugin-vue": "^5.0.4",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
     "autoprefixer": "^10.4.19",
+<<<<<<< HEAD
     "code-inspector-plugin": "^1.5.1",
+=======
+    "code-inspector-plugin": "^0.16.1",
+>>>>>>> fb2793f092f942c1d0a66e4f8bca85e0db4319fb
     "cz-git": "1.9.2",
     "czg": "^1.9.2",
     "eslint": "^8.57.0",

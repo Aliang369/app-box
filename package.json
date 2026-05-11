@@ -13,9 +13,14 @@
     "@dcloudio/uni-components": "3.0.0-4020420240722001",
     "@dcloudio/uni-h5": "3.0.0-4020420240722001",
     "@dcloudio/uni-mp-weixin": "3.0.0-4020420240722001",
+<<<<<<< HEAD
     "hash-sum": "^2.0.0",
     "pinia": "^2.1.7",
     "vue": "3.4.21",
+=======
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21",
+>>>>>>> fb2793f092f942c1d0a66e4f8bca85e0db4319fb
     "wot-design-uni": "^1.14.0"
   },
   "devDependencies": {
