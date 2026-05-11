@@ -1,0 +1,42 @@
+# 依赖目录 - 不需要提交，可以通过 package.json 重新安装
+node_modules/
+
+# 构建输出目录 - 不需要提交，每次构建都会重新生成
+dist/
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 编辑器配置和缓存
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 本地环境文件
+.env.local
+.env.*.local
+
+# 测试覆盖率报告
+coverage/
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# uni-app 特定
+unpackage/
+
+# 微信小程序开发者工具项目配置文件（包含个人设置）
+project.private.config.json
