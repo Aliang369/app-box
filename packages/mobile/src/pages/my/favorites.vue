@@ -1,14 +1,16 @@
 <template>
-  <view class="min-h-screen bg-gray-50 px-4 pt-6 pb-10">
-    <view v-if="loading" class="flex justify-center py-20">
+  <view class="min-h-screen bg-gray-50 pb-10">
+    <PageHeader title="我的收藏" fallback-url="/pages/my/index" />
+
+    <view v-if="loading" class="flex justify-center py-20 px-6">
       <view class="i-lucide-loader-2 animate-spin text-gray-300 text-3xl"></view>
     </view>
 
     <block v-else-if="list.length > 0">
-      <view class="space-y-4">
+      <view class="px-6 pt-5 space-y-4">
         <view
           v-for="(item, index) in list" :key="index"
-          class="bg-white rounded-3xl p-4 flex gap-4 items-center active:scale-[0.98] transition-all shadow-sm"
+          class="bg-white rounded-[32rpx] border border-gray-100 p-4 flex gap-4 items-center active:bg-gray-50 transition-colors"
           @click="goToDetail(item.id)"
         >
           <image :src="item.cover" class="w-20 h-20 rounded-2xl bg-gray-100 object-cover" />
@@ -26,9 +28,12 @@
       </view>
     </block>
 
-    <view v-else class="flex flex-col items-center justify-center py-32">
-      <view class="i-lucide-ghost text-gray-200 text-6xl mb-4"></view>
-      <text class="text-sm text-gray-400 font-bold">这里空空如也</text>
+    <view v-else class="px-6 pt-20 flex flex-col items-center justify-center">
+      <view class="w-18 h-18 bg-white rounded-full flex items-center justify-center border border-gray-100 mb-5">
+        <view class="i-lucide-heart text-gray-300 text-3xl"></view>
+      </view>
+      <text class="text-base text-gray-900 font-black mb-2">还没有收藏内容</text>
+      <text class="text-xs text-gray-400 font-bold">去首页看看喜欢的游戏吧</text>
     </view>
   </view>
 </template>
@@ -37,6 +42,7 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getMyFavoritesApi } from '@/api/user'
+import PageHeader from '@/components/PageHeader.vue'
 
 const loading = ref(true)
 const list = ref<any[]>([])

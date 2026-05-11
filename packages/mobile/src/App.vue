@@ -36,4 +36,25 @@ uni-tabbar {
 uni-page-wrapper {
   padding-bottom: 0 !important;
 }
+
+/* #ifdef H5 */
+html,
+body,
+uni-app,
+uni-page-wrapper,
+uni-page-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+uni-app::-webkit-scrollbar,
+uni-page-wrapper::-webkit-scrollbar,
+uni-page-body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+/* #endif */
 </style>

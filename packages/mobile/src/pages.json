@@ -26,19 +26,7 @@
       "path": "pages/detail/index",
       "style": {
         "navigationBarTitleText": "游戏详情",
-        "navigationBarBackgroundColor": "#ffffff",
-        "navigationBarTextStyle": "black",
-        "app-plus": {
-          "titleNView": {
-            "buttons": [
-              {
-                "type": "share",
-                "fontSize": "22px",
-                "color": "#333333"
-              }
-            ]
-          }
-        }
+        "navigationStyle": "custom"
       }
     },
     {
@@ -62,14 +50,14 @@
       "path": "pages/my/favorites",
       "style": {
         "navigationBarTitleText": "我的收藏",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationStyle": "custom"
       }
     },
     {
       "path": "pages/my/footprints",
       "style": {
         "navigationBarTitleText": "最近浏览",
-        "navigationBarBackgroundColor": "#ffffff"
+        "navigationStyle": "custom"
       }
     },
     {

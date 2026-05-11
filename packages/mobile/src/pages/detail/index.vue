@@ -1,5 +1,12 @@
 <template>
   <view class="min-h-screen bg-gray-50 pb-28">
+    <PageHeader
+      title="游戏详情"
+      fallback-url="/pages/index/index"
+      right-icon="i-lucide-share-2"
+      @right-click="handleShare"
+    />
+
     <view v-if="loading" class="p-6 space-y-4">
       <view class="w-full h-32 bg-gray-200 animate-pulse rounded-2xl"></view>
       <view class="w-2/3 h-8 bg-gray-200 animate-pulse rounded-lg"></view>
@@ -35,21 +42,21 @@
           </view>
           
           <view class="flex-1 flex flex-col items-center justify-center">
-            <text class="text-lg font-black text-gray-900 mb-1">256MB</text>
+            <text class="text-lg font-black text-gray-900 mb-1">{{ gameSizeText }}</text>
             <text class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">大小</text>
           </view>
         </view>
       </view>
 
       <view class="px-6 mt-6 space-y-8">
-        <view class="bg-indigo-50/50 rounded-3xl p-5 border border-indigo-100/50 flex items-center justify-between">
+        <view v-if="showGiftCard" class="bg-indigo-50/50 rounded-3xl p-5 border border-indigo-100/50 flex items-center justify-between">
           <view class="flex items-center gap-4">
             <view class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-sm shadow-indigo-500/30">
               <view class="i-lucide-gift text-white text-xl"></view>
             </view>
             <view>
-              <text class="block text-sm font-black text-gray-900 mb-0.5">新手启航礼包</text>
-              <text class="text-[10px] text-gray-500 font-bold">包含海量金币与限定道具</text>
+              <text class="block text-sm font-black text-gray-900 mb-0.5">{{ gameInfo.gift_name }}</text>
+              <text class="text-[10px] text-gray-500 font-bold">{{ gameInfo.gift_desc }}</text>
             </view>
           </view>
           <view 
@@ -103,16 +110,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { onLoad, onNavigationBarButtonTap, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
+import { computed, ref } from 'vue'
+import { onLoad, onShareAppMessage, onShareTimeline } from '@dcloudio/uni-app'
 import { getGameDetailApi } from '@/api/game'
 import { claimGiftApi, checkFavoriteApi, toggleFavoriteApi, addFootprintApi } from '@/api/user'
+import PageHeader from '@/components/PageHeader.vue'
 
 const loading = ref(true)
 const gameInfo = ref<any>({})
 const screenshots = ref<string[]>([])
 const hasClaimed = ref(false)
 const isFavorited = ref(false)
+
+const gameSizeText = computed(() => {
+  let mb = Number(gameInfo.value?.size_mb)
+  if (!(mb > 0)) mb = Number(gameInfo.value?.size)
+  if (mb > 0) {
+    if (mb >= 1000) {
+      const gb = mb / 1024
+      return `${gb.toFixed(2)}GB`
+    }
+    return `${mb}MB`
+  }
+  return '256MB'
+})
+
+const showGiftCard = computed(() => {
+  return Boolean(gameInfo.value?.gift_name || gameInfo.value?.gift_desc)
+})
 
 // 预取礼包和收藏状态 (模拟逻辑，若后端接口存在则直接调用)
 const fetchUserStatus = async (gameId: number) => {
@@ -150,11 +175,6 @@ const fetchGameDetail = async (id: string) => {
 
 onLoad((options: any) => {
   if (options.id) fetchGameDetail(options.id)
-})
-
-// 监听原生导航栏右上角按钮点击 (主要用于App端分享)
-onNavigationBarButtonTap((e) => {
-  if (e.index === 0) handleShare()
 })
 
 const handleClaimGift = async () => {

@@ -87,13 +87,10 @@
             </view>
             <view class="flex-1 min-h-0 flex items-center gap-2">
               <text class="text-[11px] font-semibold text-amber-500 leading-none">★ {{ game.rating }}</text>
-              <text class="text-[10px] text-indigo-500 border border-indigo-100 px-1.5 py-0.5 rounded-sm">#{{ game.tag }}</text>
+              <text class="text-[10px] text-gray-500 px-1.5 py-0.5">{{ game.tag }}</text>
             </view>
             <view class="flex-1 min-h-0 flex items-center">
-              <view class="flex items-center">
-                <text class="text-[10px] text-gray-400 mr-1">下载</text>
-                <text class="text-[11px] font-medium text-gray-700">{{ game.downloads }}</text>
-              </view>
+              <text class="text-[11px] font-medium text-gray-700">{{ game.downloads }}人下载</text>
             </view>
           </view>
         </view>

@@ -1,65 +1,85 @@
 <template>
-  <view class="min-h-screen bg-white px-6 pt-24 pb-10 flex flex-col">
-    <view class="mb-10 flex items-center justify-between">
-      <view>
-        <text class="text-3xl font-black text-gray-900 block mb-2 tracking-tight">我的礼包</text>
-        <text class="text-xs text-gray-400 font-bold uppercase tracking-widest">Gift Center</text>
-      </view>
-      <view class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center active:bg-gray-100" @click="goBack">
-        <view class="i-lucide-x text-gray-400 text-lg"></view>
-      </view>
-    </view>
+  <view class="min-h-screen bg-gray-50 pb-10">
+    <PageHeader title="我的礼包" fallback-url="/pages/my/index" />
 
-    <view v-if="loading" class="flex flex-col items-center justify-center py-20">
-      <view class="i-lucide-loader-2 animate-spin text-gray-200 text-3xl mb-4"></view>
-      <text class="text-xs text-gray-300 font-bold">正在整理您的福利...</text>
+    <view v-if="loading" class="px-6 pt-6 space-y-4">
+      <view class="bg-white rounded-[32rpx] border border-gray-100 p-5">
+        <view class="flex items-center gap-4">
+          <view class="w-14 h-14 rounded-2xl bg-gray-100 animate-pulse"></view>
+          <view class="flex-1 space-y-2">
+            <view class="h-4 bg-gray-100 rounded animate-pulse"></view>
+            <view class="h-3 w-24 bg-gray-100 rounded animate-pulse"></view>
+          </view>
+        </view>
+        <view class="mt-5 h-16 rounded-2xl bg-gray-50 animate-pulse"></view>
+      </view>
+      <view class="bg-white rounded-[32rpx] border border-gray-100 p-5">
+        <view class="flex items-center gap-4">
+          <view class="w-14 h-14 rounded-2xl bg-gray-100 animate-pulse"></view>
+          <view class="flex-1 space-y-2">
+            <view class="h-4 bg-gray-100 rounded animate-pulse"></view>
+            <view class="h-3 w-20 bg-gray-100 rounded animate-pulse"></view>
+          </view>
+        </view>
+        <view class="mt-5 h-16 rounded-2xl bg-gray-50 animate-pulse"></view>
+      </view>
     </view>
 
     <block v-else-if="giftList.length > 0">
-      <view class="space-y-6">
-        <view
-          v-for="(item, index) in giftList"
-          :key="index"
-          class="group bg-white rounded-[40rpx] border border-gray-100 p-5 shadow-sm shadow-gray-100/50 active:scale-[0.98] transition-all"
-        >
-          <view class="flex items-center gap-4 mb-5">
-            <image :src="item.cover" class="w-14 h-14 rounded-2xl bg-gray-50" mode="aspectFill" />
-            <view class="flex-1">
-              <text class="text-base font-black text-gray-900 block mb-0.5">{{ item.title }}</text>
-              <text class="text-[10px] text-gray-400 font-bold">{{ formatDate(item.created_at) }} 领取</text>
-            </view>
-            <view class="px-3 py-1 bg-green-50 rounded-lg">
-              <text class="text-[10px] text-green-600 font-bold">已入库</text>
-            </view>
-          </view>
+      <view class="px-6 pt-5">
+        <view class="mb-4 flex items-center justify-between">
+          <text class="text-xs font-bold text-gray-400 tracking-wide">已领取礼包</text>
+          <text class="text-xs font-bold text-gray-400">共 {{ giftList.length }} 个</text>
+        </view>
 
+        <view class="space-y-4">
           <view
-            class="bg-gray-50/80 rounded-2xl p-4 flex items-center justify-between border border-dashed border-gray-200"
-            @click="copyCode(item.gift_code)"
+            v-for="(item, index) in giftList"
+            :key="index"
+            class="bg-white rounded-[32rpx] border border-gray-100 p-5 active:bg-gray-50 transition-colors"
           >
-            <view>
-              <text class="text-[10px] text-gray-400 font-bold block mb-1 uppercase tracking-tighter">激活码</text>
-              <text class="text-sm font-mono font-black text-indigo-600 tracking-wider">{{ item.gift_code }}</text>
+            <view class="flex items-center gap-4">
+              <image :src="item.cover" class="w-14 h-14 rounded-2xl bg-gray-100" mode="aspectFill" />
+              <view class="min-w-0 flex-1">
+                <text class="text-[15px] font-black text-gray-900 block leading-6">{{ item.title }}</text>
+                <text class="mt-1 block text-[11px] text-gray-400 font-bold">{{ formatDate(item.created_at) }} 领取</text>
+              </view>
+              <view class="shrink-0 px-3 py-1 rounded-full bg-gray-50 border border-gray-100">
+                <text class="text-[10px] text-gray-500 font-bold">已领取</text>
+              </view>
             </view>
-            <view class="flex items-center gap-1.5 text-indigo-400">
-              <text class="text-[10px] font-black uppercase">复制</text>
-              <view class="i-lucide-copy text-xs"></view>
+
+            <view class="my-4 h-px bg-gray-100"></view>
+
+            <view
+              class="rounded-2xl bg-gray-50 px-4 py-3.5 flex items-center justify-between active:bg-gray-100 transition-colors"
+              @click="copyCode(item.gift_code)"
+            >
+              <view class="min-w-0 flex-1 pr-4">
+                <text class="block text-[10px] text-gray-400 font-bold tracking-wide">激活码</text>
+                <text class="mt-1 block text-sm font-black text-gray-900 tracking-wide">{{ item.gift_code }}</text>
+              </view>
+              <view class="shrink-0 flex items-center gap-1.5 text-gray-500">
+                <text class="text-[11px] font-bold">复制</text>
+                <view class="i-lucide-copy text-sm"></view>
+              </view>
             </view>
           </view>
         </view>
       </view>
     </block>
 
-    <view v-else class="flex-1 flex flex-col items-center justify-center pb-20">
-      <view class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-        <view class="i-lucide-gift text-gray-200 text-4xl"></view>
+    <view v-else class="px-6 pt-20 flex flex-col items-center justify-center">
+      <view class="w-18 h-18 bg-white rounded-full flex items-center justify-center border border-gray-100 mb-5">
+        <view class="i-lucide-gift text-gray-300 text-3xl"></view>
       </view>
-      <text class="text-sm text-gray-400 font-bold mb-10">这里空空如也，快去领一个吧</text>
+      <text class="text-base text-gray-900 font-black mb-2">还没有领取过礼包</text>
+      <text class="text-xs text-gray-400 font-bold mb-8">去首页挑一个喜欢的游戏领取吧</text>
       <view
-        class="px-8 py-3 bg-gray-900 rounded-full active:scale-95 transition-all"
+        class="px-8 h-11 bg-gray-900 rounded-full flex items-center justify-center active:scale-95 transition-all"
         @click="goToDiscover"
       >
-        <text class="text-white text-xs font-black tracking-widest">去发现惊喜</text>
+        <text class="text-white text-xs font-black tracking-widest">去领取礼包</text>
       </view>
     </view>
   </view>
@@ -69,6 +89,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getMyGiftsApi } from '@/api/user'
+import PageHeader from '@/components/PageHeader.vue'
 
 const loading = ref(true)
 const giftList = ref<any[]>([])
@@ -95,8 +116,6 @@ onShow(() => {
   fetchGifts()
 })
 
-const goBack = () => uni.navigateBack()
-
 const goToDiscover = () => {
   uni.switchTab({ url: '/pages/index/index' })
 }
@@ -113,6 +132,8 @@ const copyCode = (code: string) => {
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${date.getFullYear()}.${month}.${day}`
 }
 </script>

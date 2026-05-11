@@ -13,6 +13,10 @@
         <el-tag size="small" effect="plain">{{ scope.row.tag }}</el-tag>
       </template>
 
+      <template #size_display="scope">
+        <span>{{ formatSize(scope.row.size_mb, scope.row.size) }}</span>
+      </template>
+
       <template #operation="scope">
         <el-button type="primary" link size="small" icon="EditPen" @click="handleEdit(scope.row)">编辑</el-button>
         <el-popconfirm title="确定要彻底删除这个游戏吗？" @confirm="handleDelete(scope.row.id)">
@@ -42,18 +46,33 @@
         <el-form-item label="简介">
           <el-input v-model="formData.short_desc" type="textarea" placeholder="简短描述" />
         </el-form-item>
-        <el-form-item label="评分/下载">
-          <div class="flex gap-4">
-            <el-input-number v-model="formData.rating" :min="1" :max="5" :step="0.1" />
-            <el-input v-model="formData.downloads" placeholder="10w+" style="width: 120px" />
+        <el-form-item label="评分">
+          <el-input-number v-model="formData.rating" :min="1" :max="5" :step="0.1" />
+        </el-form-item>
+        <el-form-item label="下载量">
+          <div class="w-full">
+            <el-input v-model="formData.downloads" placeholder="例如：1w+ / 12000" />
           </div>
         </el-form-item>
+        <el-form-item label="游戏大小">
+          <el-input-number v-model="formData.size_mb" :min="0" :step="1" />
+          <span class="ml-2 text-xs text-gray-400">单位：MB（仅填数字）</span>
+        </el-form-item>
         <el-form-item label="游戏截图">
-          <div v-for="(url, index) in formData.screenshots" :key="index" class="flex gap-2 mb-2">
-            <el-input v-model="formData.screenshots[index]" placeholder="输入截图URL" />
-            <el-button type="danger" circle :icon="Delete" @click="formData.screenshots.splice(index, 1)" />
+          <div class="w-full">
+            <div
+              v-for="(url, index) in formData.screenshots"
+              :key="index"
+              style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; margin-bottom: 14px"
+            >
+              <el-input v-model="formData.screenshots[index]" placeholder="输入截图URL" style="flex: 1; min-width: 0" />
+              <el-button type="danger" plain :icon="Delete" style="flex-shrink: 0" @click="formData.screenshots.splice(index, 1)">
+                删除
+              </el-button>
+            </div>
+            <el-button type="dashed" class="w-full" @click="formData.screenshots.push('')">+ 添加一张截图</el-button>
+            <div class="text-xs text-gray-400 mt-1">建议上传 3-5 张游戏截图</div>
           </div>
-          <el-button type="dashed" class="w-full" @click="formData.screenshots.push('')"> + 添加一张截图 </el-button>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -91,6 +110,8 @@ const formData = ref({
   short_desc: "",
   rating: 5.0,
   downloads: "1w+",
+  size: "256MB",
+  size_mb: 256,
   screenshots: [] as string[]
 });
 
@@ -130,27 +151,55 @@ const getTableList = async (params: any) => {
 
 // ProTable 列配置
 const columns = reactive<ColumnProps[]>([
-  { type: "index", label: "#", width: 80 },
+  { prop: "id", label: "游戏ID", width: 90 },
   { prop: "cover", label: "封面", width: 100 },
-  { prop: "title", label: "游戏名称", width: 180, search: { el: "input", tooltip: "输入游戏名称搜索" } },
+  { prop: "title", label: "游戏名称", minWidth: 180, search: { el: "input", tooltip: "输入游戏名称搜索" } },
   { prop: "tag", label: "标签", width: 100 },
   { prop: "rating", label: "评分", width: 100 },
   { prop: "downloads", label: "下载量", width: 120 },
+  { prop: "size_display", label: "大小", width: 140 },
   { prop: "operation", label: "操作", fixed: "right", width: 180 }
 ]);
 
 const openAddDialog = () => {
   isEdit.value = false;
   currentId.value = null;
-  formData.value = { title: "", cover: "", tag: "动作", short_desc: "", rating: 5.0, downloads: "1w+", screenshots: [] };
+  formData.value = {
+    title: "",
+    cover: "",
+    tag: "动作",
+    short_desc: "",
+    rating: 5.0,
+    downloads: "1w+",
+    size: "256MB",
+    size_mb: 256,
+    screenshots: []
+  };
   dialogVisible.value = true;
 };
 
 const handleEdit = (row: any) => {
   isEdit.value = true;
   currentId.value = row.id;
-  formData.value = { ...row, screenshots: [...row.screenshots] };
+  formData.value = {
+    ...row,
+    size_mb: Number(row.size_mb) > 0 ? Number(row.size_mb) : Number(row.size) || 0,
+    screenshots: [...row.screenshots]
+  };
   dialogVisible.value = true;
+};
+
+const formatSize = (sizeMb: number | string, sizeRaw?: string) => {
+  let mb = Number(sizeMb);
+  if (!(mb > 0)) mb = Number(sizeRaw);
+  if (mb > 0) {
+    if (mb >= 1000) {
+      const gb = mb / 1024;
+      return `${gb.toFixed(2)}GB`;
+    }
+    return `${mb}MB`;
+  }
+  return "--";
 };
 
 const submitForm = async () => {
