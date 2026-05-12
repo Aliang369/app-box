@@ -15,11 +15,14 @@
         <wd-swiper
           v-else
           :list="bannerList"
+          value-key="image_url"
           autoplay
           :interval="4000"
           image-mode="aspectFill"
           indicator-active-color="#4F46E5"
           height="465rpx"
+          @change="handleBannerChange"
+          @click="handleBannerClick"
         ></wd-swiper>
       </view>
     </view>
@@ -114,8 +117,9 @@ import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
 import { getGameList, getBannerList, getHomeNavList } from '@/api/game'
 
-const bannerList = ref<string[]>([])
+const bannerList = ref<any[]>([])
 const navList = ref<any[]>([])
+const currentBannerIndex = ref(0)
 
 const gameList = ref<any[]>([])
 const page = ref(1)
@@ -136,7 +140,8 @@ const fetchGameListData = async (isRefresh = false) => {
         getGameList({ page: 1, limit: 5 })
       ])
 
-      bannerList.value = banners.map((item: any) => item.image_url)
+      bannerList.value = banners || []
+      currentBannerIndex.value = 0
       navList.value = navs || []
 
       const data = newData.list || newData
@@ -187,6 +192,54 @@ const refreshData = () => {
 }
 
 const goToSearch = () => uni.navigateTo({ url: '/pages/search/index' })
+const normalizeWebUrl = (rawUrl: string) => {
+  return /^(https?:)?\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`
+}
+
+const goToBannerTarget = (banner: any) => {
+  const jumpType = String(banner?.jump_type || '').trim().toLowerCase()
+  const jumpValue = String(banner?.jump_value ?? banner?.game_id ?? '').trim()
+
+  if (jumpType === 'h5') {
+    if (!jumpValue) {
+      uni.showToast({ title: '当前轮播图未配置 H5 地址', icon: 'none' })
+      return
+    }
+    const targetUrl = normalizeWebUrl(jumpValue)
+
+    // #ifdef H5
+    window.open(targetUrl, '_blank')
+    return
+    // #endif
+
+    uni.navigateTo({
+      url: `/pages/webview/index?url=${encodeURIComponent(targetUrl)}`
+    })
+    return
+  }
+
+  if (jumpType === 'game' || banner?.game_id) {
+    const gameId = Number(banner?.game_id ?? jumpValue)
+    if (!(gameId > 0)) {
+      uni.showToast({ title: '当前轮播图未配置有效游戏ID', icon: 'none' })
+      return
+    }
+    uni.navigateTo({ url: `/pages/detail/index?id=${gameId}` })
+  }
+}
+
+const handleBannerChange = (payload: any) => {
+  const nextIndex = Number(payload?.current)
+  if (nextIndex >= 0) currentBannerIndex.value = nextIndex
+}
+
+const handleBannerClick = (payload: any) => {
+  const banner = payload?.item ?? bannerList.value[currentBannerIndex.value]
+  if (!banner) return
+  uni.vibrateShort({})
+  goToBannerTarget(banner)
+}
+
 const getNavIconStyle = (icon: string) => {
   if (!icon) return {}
   const trimmed = icon.trim()

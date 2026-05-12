@@ -145,7 +145,7 @@ const fetchUserStatus = async (gameId: number) => {
   if (!userInfoStr) return
   const user = JSON.parse(userInfoStr)
   try {
-    const favRes: any = await checkFavoriteApi(user.id, gameId)
+    const favRes: any = await checkFavoriteApi(gameId)
     isFavorited.value = favRes.isFavorited
     // 如果后端有 check 接口，在这里检查礼包：hasClaimed.value = res.isClaimed
   } catch (error) {}
@@ -163,7 +163,7 @@ const fetchGameDetail = async (id: string) => {
     // 追加：静默记录足迹埋点
     const userInfoStr = uni.getStorageSync('user_info')
     if (userInfoStr) {
-       addFootprintApi({ user_id: JSON.parse(userInfoStr).id, game_id: res.id })
+       addFootprintApi({ game_id: res.id })
     }
     
   } catch (error) {
@@ -185,10 +185,9 @@ const handleClaimGift = async () => {
     setTimeout(() => uni.navigateTo({ url: '/pages/login/index' }), 1000)
     return
   }
-  const user = JSON.parse(userInfoStr)
   uni.showLoading({ title: '领取中' })
   try {
-    const res: any = await claimGiftApi({ user_id: user.id, game_id: gameInfo.value.id })
+    const res: any = await claimGiftApi({ game_id: gameInfo.value.id })
     uni.hideLoading()
     uni.showToast({ title: '领取成功', icon: 'success' })
     hasClaimed.value = true
@@ -211,10 +210,8 @@ const handleFavorite = async () => {
     setTimeout(() => uni.navigateTo({ url: '/pages/login/index' }), 1000)
     return
   }
-  const user = JSON.parse(userInfoStr)
-  
   try {
-    const res: any = await toggleFavoriteApi({ user_id: user.id, game_id: gameInfo.value.id })
+    const res: any = await toggleFavoriteApi({ game_id: gameInfo.value.id })
     isFavorited.value = res.isFavorited
     
     // 强制前端显示 Toast，不依赖后端的 message 字段

@@ -1,14 +1,14 @@
 <template>
   <view class="min-h-screen bg-gray-50 pb-24">
-    <view class="bg-white px-6 pt-24 pb-8 rounded-b-[40rpx] shadow-sm">
+    <view class="bg-white px-6 pt-[calc(var(--status-bar-height,0px)+16px)] pb-8 rounded-b-[40rpx] shadow-sm">
       <view class="flex items-center gap-5">
         <view class="w-20 h-20 rounded-full bg-gray-100 overflow-hidden shadow-sm border border-gray-50">
           <image :src="isLogin ? userInfo.avatar : '/static/default-avatar.png'" class="w-full h-full" mode="aspectFill" />
         </view>
         <view class="flex-1" @click="handleUserClick">
           <block v-if="isLogin">
-            <text class="text-2xl font-black text-gray-900 block mb-1">{{ userInfo.username }}</text>
-            <text class="text-xs text-gray-400 font-bold">正式玩家 ID: {{ userInfo.id }}</text>
+            <text class="text-2xl font-black text-gray-900 block mb-1">{{ userInfo.nickname || userInfo.username }}</text>
+            <text class="text-xs text-gray-400 font-bold">账号：{{ userInfo.username }}</text>
           </block>
           <block v-else>
             <text class="text-2xl font-black text-gray-900 block mb-1">点击登录</text>
@@ -35,6 +35,15 @@
 
     <view class="px-6 mt-6 pb-20">
       <view class="bg-white rounded-[32rpx] overflow-hidden shadow-sm shadow-gray-100/50 border border-gray-100/80">
+        <view class="flex items-center justify-between p-5 active:bg-gray-50 transition-colors" @click="goToProfile">
+          <view class="flex items-center gap-3">
+            <view class="i-lucide-user-round text-gray-800 text-xl"></view>
+            <text class="text-[15px] font-bold text-gray-900 tracking-wide">个人资料</text>
+          </view>
+          <view class="i-lucide-chevron-right text-gray-300"></view>
+        </view>
+
+        <view class="w-full h-px bg-gray-50 ml-12"></view>
 
         <view class="flex items-center justify-between p-5 active:bg-gray-50 transition-colors" @click="goTo('/pages/my/gifts')">
           <view class="flex items-center gap-3">
@@ -75,7 +84,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/CustomTabBar.vue'
-import { getUserStatsApi } from '@/api/user'
+import { getUserProfileApi, getUserStatsApi } from '@/api/user'
 
 const isLogin = ref(false)
 const userInfo = ref<any>({})
@@ -87,9 +96,24 @@ const checkLoginStatus = async () => {
     userInfo.value = JSON.parse(info)
     isLogin.value = true
     try {
-      const res: any = await getUserStatsApi(userInfo.value.id)
+      const profile: any = await getUserProfileApi()
+      userInfo.value = {
+        ...userInfo.value,
+        ...profile
+      }
+      uni.setStorageSync('user_info', JSON.stringify({
+        ...JSON.parse(info),
+        ...profile
+      }))
+
+      const res: any = await getUserStatsApi()
       stats.value = res || { favCount: 0, footCount: 0, giftCount: 0 }
-    } catch (e) {}
+    } catch (e) {
+      uni.removeStorageSync('user_info')
+      isLogin.value = false
+      userInfo.value = {}
+      stats.value = { favCount: 0, footCount: 0, giftCount: 0 }
+    }
   } else {
     isLogin.value = false
     userInfo.value = {}
@@ -99,7 +123,16 @@ const checkLoginStatus = async () => {
 
 onShow(() => { checkLoginStatus() })
 
-const handleUserClick = () => { if (!isLogin.value) uni.navigateTo({ url: '/pages/login/index' }) }
+const handleUserClick = () => {
+  if (!isLogin.value) return uni.navigateTo({ url: '/pages/login/index' })
+  goToProfile()
+}
+
+const goToProfile = () => {
+  if (!isLogin.value) return uni.navigateTo({ url: '/pages/login/index' })
+  uni.navigateTo({ url: '/pages/my/profile' })
+}
+
 const goTo = (url: string) => {
   if (!isLogin.value) return uni.navigateTo({ url: '/pages/login/index' })
   uni.navigateTo({ url })

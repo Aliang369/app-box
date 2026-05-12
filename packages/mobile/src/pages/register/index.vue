@@ -1,21 +1,21 @@
 <template>
   <view class="min-h-screen bg-gray-50">
-    <PageHeader title="账号登录" fallback-url="/pages/my/index" />
+    <PageHeader title="注册账号" fallback-url="/pages/my/index" />
 
     <view class="px-6 pt-8 pb-10">
       <view class="mb-10">
-        <text class="text-[30px] font-black text-gray-900 block tracking-tight">欢迎回来</text>
+        <text class="text-[30px] font-black text-gray-900 block tracking-tight">创建新账号</text>
       </view>
 
       <view class="rounded-[36rpx] border border-gray-100 bg-white px-5 py-5 shadow-sm shadow-gray-100/70">
         <view class="space-y-4">
           <view class="bg-gray-50 rounded-2xl px-4 h-14 flex items-center border border-transparent focus-within:border-gray-200 focus-within:bg-white transition-colors">
-            <view class="i-lucide-user text-gray-400 text-lg mr-3"></view>
+            <view class="i-lucide-user-round-plus text-gray-400 text-lg mr-3"></view>
             <input
               v-model="form.username"
               type="text"
               maxlength="20"
-              placeholder="请输入账号"
+              placeholder="设置账号，支持字母数字下划线"
               class="flex-1 text-sm text-gray-900 font-bold h-full"
               placeholder-class="text-gray-300"
             />
@@ -28,7 +28,20 @@
               type="password"
               maxlength="20"
               password
-              placeholder="请输入密码"
+              placeholder="设置密码，6-20位"
+              class="flex-1 text-sm text-gray-900 font-bold h-full"
+              placeholder-class="text-gray-300"
+            />
+          </view>
+
+          <view class="bg-gray-50 rounded-2xl px-4 h-14 flex items-center border border-transparent focus-within:border-gray-200 focus-within:bg-white transition-colors">
+            <view class="i-lucide-shield-check text-gray-400 text-lg mr-3"></view>
+            <input
+              v-model="form.confirmPassword"
+              type="password"
+              maxlength="20"
+              password
+              placeholder="再次输入密码"
               class="flex-1 text-sm text-gray-900 font-bold h-full"
               placeholder-class="text-gray-300"
             />
@@ -37,9 +50,9 @@
       </view>
 
       <view class="mt-6">
-        <view class="w-full h-12 rounded-full bg-gray-900 flex items-center justify-center active:scale-[0.98] transition-transform" @click="handleLogin">
+        <view class="w-full h-12 rounded-full bg-gray-900 flex items-center justify-center active:scale-[0.98] transition-transform" @click="handleRegister">
           <view v-if="isLoading" class="i-lucide-loader-2 animate-spin text-white text-lg"></view>
-          <text v-else class="text-white text-sm font-black tracking-widest">登录</text>
+          <text v-else class="text-white text-sm font-black tracking-widest">注册并创建账号</text>
         </view>
       </view>
 
@@ -49,7 +62,7 @@
             <view v-if="agreed" class="i-lucide-check text-white text-[12px]"></view>
           </view>
           <view class="min-w-0 flex-1">
-            <text class="text-[11px] leading-5 text-gray-500 font-bold">点击登录即代表你已同意 </text>
+            <text class="text-[11px] leading-5 text-gray-500 font-bold">点击注册即代表你已同意 </text>
             <text class="text-[11px] leading-5 text-gray-900 font-black" @click.stop="openAgreement('user')">《用户协议》</text>
             <text class="text-[11px] leading-5 text-gray-400 font-bold"> 和 </text>
             <text class="text-[11px] leading-5 text-gray-900 font-black" @click.stop="openAgreement('privacy')">《隐私政策》</text>
@@ -58,8 +71,8 @@
       </view>
 
       <view class="mt-4 flex items-center justify-between px-1">
-        <text class="text-xs text-gray-400 font-bold">没有账号？</text>
-        <text class="text-xs text-gray-900 font-black" @click="goRegister">立即注册</text>
+        <text class="text-xs text-gray-400 font-bold">已有账号？</text>
+        <text class="text-xs text-gray-900 font-black" @click="goLogin">返回登录</text>
       </view>
     </view>
   </view>
@@ -67,30 +80,20 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { loginApi } from '@/api/user'
+import { registerApi } from '@/api/user'
 import PageHeader from '@/components/PageHeader.vue'
-import { setStoredUserInfo } from '@/utils/auth'
 
 const isLoading = ref(false)
 const agreed = ref(false)
 const form = reactive({
   username: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
-const afterLoginSuccess = () => {
-  const pages = getCurrentPages()
-  uni.$emit('login_success')
-  if (pages.length > 1) {
-    uni.navigateBack()
-    return
-  }
-  uni.switchTab({ url: '/pages/my/index' })
-}
-
-const handleLogin = async () => {
-  if (!form.username.trim() || !form.password.trim()) {
-    return uni.showToast({ title: '账号或密码不能为空', icon: 'none' })
+const handleRegister = async () => {
+  if (!form.username.trim() || !form.password || !form.confirmPassword) {
+    return uni.showToast({ title: '请完整填写注册信息', icon: 'none' })
   }
 
   if (!agreed.value) {
@@ -100,20 +103,14 @@ const handleLogin = async () => {
 
   isLoading.value = true
   try {
-    const res: any = await loginApi({
+    await registerApi({
       username: form.username.trim(),
-      password: form.password
+      password: form.password,
+      confirmPassword: form.confirmPassword
     })
-
-    setStoredUserInfo({
-      token: res.token,
-      refreshToken: res.refreshToken,
-      ...res.userInfo
-    })
-
-    uni.showToast({ title: '登录成功', icon: 'success' })
+    uni.showToast({ title: '注册成功', icon: 'success' })
     setTimeout(() => {
-      afterLoginSuccess()
+      uni.redirectTo({ url: '/pages/login/index' })
     }, 600)
   } catch (error) {
     // 错误提示由 request 统一处理
@@ -122,8 +119,8 @@ const handleLogin = async () => {
   }
 }
 
-const goRegister = () => {
-  uni.navigateTo({ url: '/pages/register/index' })
+const goLogin = () => {
+  uni.redirectTo({ url: '/pages/login/index' })
 }
 
 const openAgreement = (type: 'user' | 'privacy') => {

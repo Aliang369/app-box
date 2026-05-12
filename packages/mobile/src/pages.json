@@ -70,6 +70,27 @@
         "navigationBarTitleText": "欢迎登录",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "注册账号",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/agreement/index",
+      "style": {
+        "navigationBarTitleText": "协议内容",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/my/profile",
+      "style": {
+        "navigationBarTitleText": "个人资料",
+        "navigationStyle": "custom"
+      }
     }
   ],
   "globalStyle": {

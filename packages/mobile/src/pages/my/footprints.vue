@@ -50,9 +50,8 @@ const list = ref<any[]>([])
 onLoad(async () => {
   const userInfoStr = uni.getStorageSync('user_info')
   if (!userInfoStr) return loading.value = false
-  const user = JSON.parse(userInfoStr)
   try {
-    const res: any = await getMyFootprintsApi(user.id)
+    const res: any = await getMyFootprintsApi()
     list.value = res || []
   } catch (e) {} finally {
     loading.value = false

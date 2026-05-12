@@ -101,9 +101,8 @@ const fetchGifts = async () => {
     return
   }
   
-  const user = JSON.parse(userInfoStr)
   try {
-    const res: any = await getMyGiftsApi(user.id)
+    const res: any = await getMyGiftsApi()
     giftList.value = res
   } catch (e) {
     // 错误处理由 request 拦截器负责
